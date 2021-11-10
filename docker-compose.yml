@@ -1,0 +1,33 @@
+version: '3.6'
+
+volumes:
+  postgis-data:
+
+services:
+
+  postgres:
+    image: kartoza/postgis:14-3.1
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_MULTIPLE_EXTENSIONS=postgis
+
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+      - postgis-data:/var/lib/postgresql
+
+  pgadmin-compose:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@test.test"
+      PGADMIN_DEFAULT_PASSWORD: "TESTPASSWORD"
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgres
