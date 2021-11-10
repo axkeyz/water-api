@@ -90,3 +90,9 @@ func WriteOutage(outage []WaterOutage) {
 		log.Fatal(err)
 	}
 }
+
+// This function gets the latest data from the Watercare API and upserts the data into the database.
+func UpdateOutages() {
+	outages := GetAPIData()
+	WriteOutage(outages)
+}
