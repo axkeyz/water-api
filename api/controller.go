@@ -2,7 +2,6 @@
 package api
 
 import (
-	// "fmt"
 	"log"
     "encoding/json"
     "net/http"
@@ -28,18 +27,20 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	var outages []DBWaterOutage
 
     // Get all outages from outage table
-    rows, err := db.Query("SELECT * FROM outage")
+    rows, err := db.Query( `SELECT outage_id, address, location, start_date, end_date, outage_type, 
+	created_at, updated_at FROM outage`)
+	
     if err != nil {
         log.Fatal(err)
     }
 
     // Map each row of the database to a DBWaterOutage struct
     for rows.Next() {
-        var id, outageID int
+        var outageID int
         var address, location, startDate, endDate, outageType, createdAt, updatedAt string
 
 		// Get data in the row
-        err = rows.Scan(&id, &outageID, &address, &location, &startDate, &endDate, 
+        err = rows.Scan(&outageID, &address, &location, &startDate, &endDate, 
 			&outageType, &createdAt, &updatedAt)
         if err != nil {
 			log.Fatal(err)
@@ -50,11 +51,11 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			OutageID: outageID, 
 			Address: address,
 			Location: location,
-			StartDate: startDate,
-			EndDate: endDate,
+			StartDate: startDate[:19] + "+13:00",
+			EndDate: endDate[:19] + "+13:00",
 			OutageType: outageType,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
+			CreatedAt: createdAt[:19] + "+13:00",
+			UpdatedAt: updatedAt[:19] + "+13:00",
 		})
     }
 
