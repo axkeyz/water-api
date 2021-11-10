@@ -1,4 +1,4 @@
-module water-down-again
+module github.com/axkeyz/water-down-again
 
 go 1.13
 
