@@ -1,4 +1,4 @@
-// This file sets up a database object for queries
+// setup.go sets up a database object for queries
 package database
 
 import (
