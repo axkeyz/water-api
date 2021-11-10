@@ -25,8 +25,8 @@ services:
   pgadmin-compose:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@test.test"
-      PGADMIN_DEFAULT_PASSWORD: "TESTPASSWORD"
+      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
     ports:
       - "16543:80"
     depends_on:
