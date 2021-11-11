@@ -2,9 +2,9 @@
 package database
 
 import (
-    "fmt"
-    "log"
-    "os"
+	"fmt"
+	"log"
+	"os"
 	"database/sql"
 	_ "github.com/lib/pq"
 	"github.com/joho/godotenv"

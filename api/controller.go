@@ -3,10 +3,10 @@ package api
 
 import (
 	"log"
-    "encoding/json"
-    "net/http"
+	"encoding/json"
+	"net/http"
 	"github.com/axkeyz/water-down-again/database"
-    _ "github.com/lib/pq"
+	_ "github.com/lib/pq"
 )
 
 // A DBWaterOutage struct maps a water outage from the database of this app.
@@ -26,28 +26,28 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
     db := database.SetupDB()
 	var outages []DBWaterOutage
 
-    // Get all outages from outage table
-    rows, err := db.Query( `SELECT outage_id, address, location, start_date, end_date, outage_type, 
+	// Get all outages from outage table
+	rows, err := db.Query( `SELECT outage_id, address, location, start_date, end_date, outage_type, 
 	created_at, updated_at FROM outage`)
 	
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Map each row of the database to a DBWaterOutage struct
-    for rows.Next() {
-        var outageID int
-        var address, location, startDate, endDate, outageType, createdAt, updatedAt string
+	// Map each row of the database to a DBWaterOutage struct
+	for rows.Next() {
+		var outageID int
+		var address, location, startDate, endDate, outageType, createdAt, updatedAt string
 
 		// Get data in the row
-        err = rows.Scan(&outageID, &address, &location, &startDate, &endDate, 
+		err = rows.Scan(&outageID, &address, &location, &startDate, &endDate, 
 			&outageType, &createdAt, &updatedAt)
-        if err != nil {
+		if err != nil {
 			log.Fatal(err)
 		}
 
 		// Save data to struct
-        outages = append(outages, DBWaterOutage{
+		outages = append(outages, DBWaterOutage{
 			OutageID: outageID, 
 			Address: address,
 			Location: location,
@@ -57,11 +57,11 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: createdAt[:19] + "+13:00",
 			UpdatedAt: updatedAt[:19] + "+13:00",
 		})
-    }
+	}
 
 	// Setup output headers & JSON
 	w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(outages)
+	json.NewEncoder(w).Encode(outages)
 
 	// fmt.Printf("Someone retrieved all api data.\n")
 }
