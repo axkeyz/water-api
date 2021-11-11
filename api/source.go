@@ -3,11 +3,11 @@
 package api
 
 import (
-    "fmt"
-    "io/ioutil"
-    "log"
-    "net/http"
-    "os"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
 	"encoding/json"
 	"strings"
 	"github.com/axkeyz/water-down-again/database"
@@ -27,20 +27,20 @@ type WaterOutage struct {
 // GetAPIData returns the latest data as array of WaterOutage structs from the Watercare Outage API.
 func GetAPIData() []WaterOutage {
 	// Get data from the Watercare Outagee API.
-    // response, err := http.Get("https://api.watercare.co.nz/outages/all")
+	// response, err := http.Get("https://api.watercare.co.nz/outages/all")
 
 	// Currently use test API
 	response, err := http.Get("https://618a623134b4f400177c4603.mockapi.io/wateroutage")
-    if err != nil {
-        fmt.Print(err.Error())
-        os.Exit(1)
-    }
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
 	
 	// Read response data
-    outagesJSON, err := ioutil.ReadAll(response.Body)
-    if err != nil {
-        log.Fatal(err)
-    }
+	outagesJSON, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Fold responseData into WaterOutage structs
 	var outages []WaterOutage

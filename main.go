@@ -1,7 +1,8 @@
 package main
 
 import (
-    "github.com/axkeyz/water-down-again/api"
+	// "github.com/axkeyz/water-down-again/database"
+	"github.com/axkeyz/water-down-again/api"
 	"github.com/robfig/cron"
 	"github.com/gorilla/mux"
 	"log"
@@ -13,7 +14,7 @@ func main() {
 	api.UpdateOutages()
 
 	// Init the mux router
-    router := mux.NewRouter()
+	router := mux.NewRouter()
 
 	// Setup routes
 	router.HandleFunc("/api", api.GetOutages).Methods("GET")
@@ -21,9 +22,13 @@ func main() {
 	// Run server
 	log.Fatal(http.ListenAndServe("localhost:8553", router))
 
-	// Create cronjob to run retrieval & write every 45 minutes
+	// Create cronjobs
 	c := cron.New()
-    c.AddFunc("@every 45m", api.UpdateOutages)
-    c.Start()
-    select {}
+	// Retrieve Watercare API & update app database
+	c.AddFunc("@hourly", api.UpdateOutages)
+	// Create a cronjob to backup database once per day
+	// c.AddFunc("@every 2m", database.MakeBackup)
+	// d.AddFunc("@daily", database.MakeBackup)
+	c.Start()
+ 	select {}
 }
