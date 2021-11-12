@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
+	"os"
 )
 
 func main() {
@@ -19,7 +21,8 @@ func main() {
 	router.HandleFunc("/", api.GetOutages).Methods("GET")
 
 	// Run server
-	log.Fatal(http.ListenAndServe(":8080", router))
+	port,_ := strconv.Atoi(os.Getenv("APP_PORT"))
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), router))
 
 	// Create cronjobs
 	c := cron.New()

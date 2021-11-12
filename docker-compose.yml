@@ -37,7 +37,7 @@ services:
       - postgres
 
   api:
-    image: axkeyz/water:v0.2
+    image: axkeyz/water:v0.4
     container_name: api_water
     env_file:
       - .env
@@ -48,6 +48,6 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
     ports:
-      - "8080:8080"
+      - "${APP_PORT}:${APP_PORT}"
     depends_on:
       - postgres
