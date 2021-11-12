@@ -7,18 +7,11 @@ import (
 	"os"
 	"database/sql"
 	_ "github.com/lib/pq"
-	"github.com/joho/godotenv"
 	"strconv"
 )
 
 // SetupDB loads the data from the .env file and sets up the database object.
 func SetupDB() *sql.DB {
-	// Load .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	// Get key .env variables
 	host := os.Getenv("DB_HOST")
 	port,_ := strconv.Atoi(os.Getenv("DB_PORT"))
