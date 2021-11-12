@@ -1,19 +1,24 @@
 # syntax=docker/dockerfile:1
 
-# Golang in Alpine server
-FROM golang:1.17.3-alpine
+# BUILD
+FROM golang:1.17.3-buster AS build
 
 WORKDIR /app
 
-# Download necessary Go modules
-COPY go.mod ./
-COPY go.sum ./
+COPY . .
 RUN go mod download
 
-COPY *.go ./
+RUN go build -o /water
 
-RUN go build -o /docker-gs-ping
+# DEPLOY
+FROM gcr.io/distroless/base-debian10
+
+WORKDIR /
+
+COPY --from=build /water /water
 
 EXPOSE 8080
 
-CMD [ "/docker-gs-ping" ]
+USER nonroot:nonroot
+
+ENTRYPOINT ["/water"]
