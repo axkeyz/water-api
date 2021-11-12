@@ -70,7 +70,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query( main + filter )
 	
 	if err != nil {
-		log.Fatal(err)
+		// Filter string is invalid.
+		rows, _ = db.Query( main )
 	}
 
 	// Map each row of the database to a DBWaterOutage struct
