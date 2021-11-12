@@ -16,7 +16,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// Setup routes
-	router.HandleFunc("/api", api.GetOutages).Methods("GET")
+	router.HandleFunc("/", api.GetOutages).Methods("GET")
 
 	// Run server
 	log.Fatal(http.ListenAndServe("localhost:8553", router))

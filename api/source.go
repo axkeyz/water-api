@@ -51,7 +51,7 @@ func GetAPIData() []WaterOutage {
 
 // UnpackAPIData converts an array of WaterOutage structs into a string for SQL insertion.
 // The data is returned as comma separated list where each element looks like:
-// (OutageID, 'Location', '(Longitude, Latitude)', 'StartDate', 'EndDate', 'OutageType')
+// (OutageID, 'Street', 'Suburb', '(Longitude, Latitude)', 'StartDate', 'EndDate', 'OutageType')
 func UnpackAPIData(outages []WaterOutage) (string){
 	// Initialise all variables
 	numOutage := len(outages)
@@ -59,13 +59,11 @@ func UnpackAPIData(outages []WaterOutage) (string){
 
 	// Loop through WaterOutages, separate and assign to individual array
 	for i := range outages {
-		location := fmt.Sprintf("%s", outages[i].Location)
-		if (location[0] == ' '){
-			location = location[1:]
-		}
-		arrOutages[i] = fmt.Sprintf("(%d,'%s','(%f, %f)','%s', '%s', '%s')", 
-		outages[i].OutageID, location, outages[i].Longitude, outages[i].Latitude,
-		outages[i].StartDate, outages[i].EndDate, outages[i].OutageType)
+		location := strings.Split(outages[i].Location, ",")
+
+		arrOutages[i] = fmt.Sprintf("(%d,'%s','%s','(%f, %f)','%s', '%s', '%s')", 
+		outages[i].OutageID, strings.TrimSpace(location[0]), strings.TrimSpace(location[1]), outages[i].Longitude,
+		outages[i].Latitude, outages[i].StartDate, outages[i].EndDate, outages[i].OutageType)
 	}
 
 	return strings.Join(arrOutages[:], ", ")
@@ -79,8 +77,8 @@ func WriteOutage(outage []WaterOutage) {
 	db := database.SetupDB()
 
 	// Prepare SQL Statement
-	sqlStatement := `insert into outage (outage_id, address, location, start_date, end_date, outage_type) values  
-	%s on conflict (outage_id) do update set end_date = excluded.end_date;`
+	sqlStatement := `insert into outage (outage_id, street, suburb, location, start_date, end_date, outage_type)  
+	values %s on conflict (outage_id) do update set end_date = excluded.end_date;`
 	outages := UnpackAPIData(outage)
 	combined := fmt.Sprintf(sqlStatement, outages)
 

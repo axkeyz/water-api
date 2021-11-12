@@ -12,7 +12,8 @@ import (
 // A DBWaterOutage struct maps a water outage from the database of this app.
 type DBWaterOutage struct {
 	OutageID int `json:"outage_id"`
-	Address string `json:"address"`
+	Street string `json:"street"`
+	Suburb string `json:"suburb"`
 	Location string `json:"location"`
 	StartDate string `json:"start_date"`
 	EndDate string `json:"end_date"`
@@ -27,7 +28,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	var outages []DBWaterOutage
 
 	// Get all outages from outage table
-	rows, err := db.Query( `SELECT outage_id, address, location, start_date, end_date, outage_type, 
+	rows, err := db.Query( `SELECT outage_id, street, suburb, location, start_date, end_date, outage_type, 
 	created_at, updated_at FROM outage`)
 	
 	if err != nil {
@@ -37,10 +38,10 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	// Map each row of the database to a DBWaterOutage struct
 	for rows.Next() {
 		var outageID int
-		var address, location, startDate, endDate, outageType, createdAt, updatedAt string
+		var street, suburb, location, startDate, endDate, outageType, createdAt, updatedAt string
 
 		// Get data in the row
-		err = rows.Scan(&outageID, &address, &location, &startDate, &endDate, 
+		err = rows.Scan(&outageID, &street, &suburb, &location, &startDate, &endDate, 
 			&outageType, &createdAt, &updatedAt)
 		if err != nil {
 			log.Fatal(err)
@@ -49,7 +50,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 		// Save data to struct
 		outages = append(outages, DBWaterOutage{
 			OutageID: outageID, 
-			Address: address,
+			Street: street,
+			Suburb: suburb,
 			Location: location,
 			StartDate: startDate[:19] + "+13:00",
 			EndDate: endDate[:19] + "+13:00",
