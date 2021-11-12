@@ -33,26 +33,33 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	// Get parameters and assembler filter query
 	filter := ""
 	params := r.URL.Query()
-	
-	if len(params) > 0 {
-		filter = " WHERE "
-	}
 
-	if filter != "" {
+	// if parameters exist
+	if len(params) > 0 {
 		var keyParams []string
+		isValidFilter := false
 
 		for key, element := range params {
 			if IsFilterableOutage(key) {
 				// Only append fiterable outages to key parameters list
 				param, _ := params[key]
 				if param != nil {
-					keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))
+					if key == "start_date" {
+						keyParams = append(keyParams, fmt.Sprintf("%s >= '%s'", key, element[0]))
+					}else if key == "end_date" {
+						keyParams = append(keyParams, fmt.Sprintf("%s <= '%s'", key, element[0]))
+					}else{
+						keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))
+					}
 				}
+				isValidFilter = true
 			}
 		}
 
-		// Join key parameters into final parameter string
-		filter = filter + strings.Join(keyParams, " AND ")
+		if isValidFilter {
+			// Join key parameters into final parameter string
+			filter = " WHERE " + strings.Join(keyParams, " AND ")
+		}
 	}
 
 	// Setup the database & model
@@ -101,8 +108,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 
 // IsFilterableOutage returns true if a (url) parameter is filterable.
 func IsFilterableOutage(param string) bool {
-	if param == "suburb" || param == "street" || param == "outage_type" || param == "start_date" ||
-	param == "end_date" || param == "location" {
+	if param == "suburb" || param == "street" || param == "outage_type" || 
+	param == "start_date" || param == "end_date" || param == "location" {
 		return true
 	}
 
