@@ -22,7 +22,10 @@ Data is collected hourly.
 
 ## Installation instructions
 
-1. Copy the docker-compose.yml & .env file (rename .env-example to .env) and make changes
+1. Copy the following files & make changes as needed:
+    - docker-compose.yml
+    - .env-example: Rename to .env when done
+    - docker_postgres_init.sql
 2. Pull prepared image from DockerHub and start: ```docker-compose up -d```
 3. Navigate to localhost:8080
 
