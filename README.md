@@ -22,8 +22,12 @@ Data is collected hourly.
 
 ## Installation instructions
 
-TBA
+1. Copy the docker-compose.yml & .env file (rename .env-example to .env) and make changes
+2. Pull prepared image from DockerHub and start: ```docker-compose up -d```
+3. Navigate to localhost:8080
 
 ## Live version
 
-TBD
+Probably will be at go.aileenhuang.api/water
+
+If it's not there, then maybe in the future
