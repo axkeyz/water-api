@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "github.com/axkeyz/water-down-again/database"
 	"github.com/axkeyz/water-down-again/api"
 	"github.com/robfig/cron"
 	"github.com/gorilla/mux"
@@ -26,9 +25,7 @@ func main() {
 	c := cron.New()
 	// Retrieve Watercare API & update app database
 	c.AddFunc("@hourly", api.UpdateOutages)
-	// Create a cronjob to backup database once per day
-	// c.AddFunc("@every 2m", database.MakeBackup)
-	// d.AddFunc("@daily", database.MakeBackup)
+
 	c.Start()
  	select {}
 }

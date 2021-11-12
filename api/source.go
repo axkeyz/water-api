@@ -91,7 +91,7 @@ func WriteOutage(outage []WaterOutage) {
 	}
 }
 
-// This function gets the latest data from the Watercare API and upserts the data into the database.
+// UpdateOutages gets the latest data from the Watercare API and upserts the data into the database.
 func UpdateOutages() {
 	outages := GetAPIData()
 	WriteOutage(outages)

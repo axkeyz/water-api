@@ -21,7 +21,7 @@ type DBWaterOutage struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
-// This function gets all outages from the database of this app
+// GetOutages json encodes all outages from the database of this app
 func GetOutages(w http.ResponseWriter, r *http.Request) {
     db := database.SetupDB()
 	var outages []DBWaterOutage
