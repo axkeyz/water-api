@@ -26,11 +26,12 @@ type WaterOutage struct {
 
 // GetAPIData returns the latest data as array of WaterOutage structs from the Watercare Outage API.
 func GetAPIData() []WaterOutage {
-	// Get data from the Watercare Outagee API.
-	// response, err := http.Get("https://api.watercare.co.nz/outages/all")
+	// Get data from the Watercare Outage API.
+	response, err := http.Get("https://api.watercare.co.nz/outages/all")
 
-	// Currently use test API
-	response, err := http.Get("https://618a623134b4f400177c4603.mockapi.io/wateroutage")
+	// Test API Route
+	// response, err := http.Get("https://618a623134b4f400177c4603.mockapi.io/wateroutage")
+
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
