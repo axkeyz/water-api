@@ -19,7 +19,7 @@ CREATE TABLE "outage" (
   outage_id INT NOT NULL UNIQUE,
   street VARCHAR(256),
   suburb VARCHAR(256),
-  location POINT NOT NULL,
+  location geography(point) NOT NULL,
   start_date TIMESTAMP WITHOUT TIME ZONE,
   end_date TIMESTAMP WITHOUT TIME ZONE,
   outage_type VARCHAR(50),

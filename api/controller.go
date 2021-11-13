@@ -27,7 +27,7 @@ type DBWaterOutage struct {
 // GetOutages JSON-encodes all outages from the database of this app
 func GetOutages(w http.ResponseWriter, r *http.Request) {
 	// Query lines
-	main := `SELECT outage_id, street, suburb, location, start_date, end_date, outage_type, 
+	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
 	created_at, updated_at FROM outage`
 
 	// Get parameters and assembler filter query
@@ -48,6 +48,15 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 						keyParams = append(keyParams, fmt.Sprintf("%s >= '%s'", key, element[0]))
 					}else if key == "end_date" {
 						keyParams = append(keyParams, fmt.Sprintf("%s <= '%s'", key, element[0]))
+					}else if key == "location" {
+						radius, _ := params["radius"]
+						longitude, _ := params["longitude"]
+						latitude, _ := params["latitude"]
+
+						keyParams = append(keyParams, fmt.Sprintf(
+							"ST_DWithin(location, ST_SetSRID(ST_Point(%d, %d), 4326), %d)",
+							longitude, latitude, radius,
+						))
 					}else{
 						keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))
 					}
