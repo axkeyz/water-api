@@ -27,10 +27,8 @@ Data is collected hourly.
     - .env-example: Rename to .env when done
     - docker_postgres_init.sql
 2. Pull prepared image from DockerHub and start: ```docker-compose up -d```
-3. Navigate to localhost:8080
+3. Navigate to localhost:APP_PORT (whatever you set up in the .env file)
 
 ## Live version
 
-Probably will be at go.aileenhuang.api/water
-
-If it's not there, then maybe in the future
+None at the moment
