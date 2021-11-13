@@ -54,8 +54,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 						latitude, _ := params["latitude"]
 
 						keyParams = append(keyParams, fmt.Sprintf(
-							"ST_DWithin(location, ST_SetSRID(ST_Point(%d, %d), 4326), %d)",
-							longitude, latitude, radius,
+							"ST_DWithin(location, ST_SetSRID(ST_Point(%s, %s), 4326), %s)",
+							longitude[0], latitude[0], radius[0],
 						))
 					}else{
 						keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))

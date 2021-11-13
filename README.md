@@ -16,7 +16,7 @@ It comes with the following (query) parameters:
 - end_date (before)
 - suburb
 - street
-- location
+- location (needs longitude + latitude + radius)
 
 Data is collected hourly.
 
