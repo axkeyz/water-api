@@ -28,5 +28,5 @@ CREATE TABLE "outage" (
 );
 
 -- Auto-update
-CREATE TRIGGER set_timestamp BEFORE UPDATE ON outages
+CREATE TRIGGER set_timestamp BEFORE UPDATE ON outage
 FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
