@@ -50,8 +50,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 				if param != nil {
 					if key == "start_date" {
 						keyParams = append(keyParams, fmt.Sprintf("%s >= '%s'", key, element[0]))
-					}else if key == "end_date" {
-						keyParams = append(keyParams, fmt.Sprintf("%s <= '%s'", key, element[0]))
+					}else if key == "aend_date" {
+						keyParams = append(keyParams, fmt.Sprintf("end_date <= '%s'", element[0]))
 					}else if key == "location" {
 						radius, _ := params["radius"]
 						longitude, _ := params["longitude"]
@@ -96,7 +96,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 		err = rows.Scan(&outageID, &street, &suburb, &location, &startDate, &endDate, 
 			&outageType, &createdAt, &updatedAt)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 		// Save data to struct
@@ -125,7 +125,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 // IsFilterableOutage returns true if a (url) parameter is filterable.
 func IsFilterableOutage(param string) bool {
 	if param == "suburb" || param == "street" || param == "outage_type" || 
-	param == "start_date" || param == "end_date" || param == "location" {
+	param == "start_date" || param == "end_date" || param == "aend_date"
+	param == "location" {
 		return true
 	}
 

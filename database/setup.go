@@ -26,7 +26,7 @@ func SetupDB() *sql.DB {
 	db, err := sql.Open("postgres", dbinfo)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	log.Println("Connected to database")

@@ -19,7 +19,7 @@ func main() {
 	router.HandleFunc("/", api.GetOutages).Methods("GET")
 
 	// Run server
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Println(http.ListenAndServe(":8080", router))
 	log.Println("Server is running")
 
 	// Create cronjobs

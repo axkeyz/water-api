@@ -40,7 +40,7 @@ func GetAPIData() []WaterOutage {
 	// Read response data
 	outagesJSON, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Fold responseData into WaterOutage structs
@@ -86,7 +86,7 @@ func WriteOutage(outage []WaterOutage) {
 	// run sql statement
 	_, err := db.Exec(combined)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
 
