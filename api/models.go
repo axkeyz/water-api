@@ -25,7 +25,7 @@ type DBWaterOutage struct {
 	OutageType string `json:"outage_type,omitempty"`
 	CreatedAt string `json:"created_at,omitempty"`
 	UpdatedAt string `json:"updated_at,omitempty"`
-	TotalOutages int `json:"total_outages,omitempty"`
+	TotalOutages uint8 `json:"total_outages,omitempty"`
 	TotalHours int `json:"total_hours,omitempty"`
 }
 
