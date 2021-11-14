@@ -16,37 +16,9 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received GetOutage request.")
 
 	// Get parameters and assemble filter query
-	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, tage_type, 
+	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
 	created_at, updated_at FROM outage`
 	filter := MakeFilterQuery(r)
-
-	// Assemble main query
-	// count, _ := params["count"]
-	// if count == nil {
-	// 	main = `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
-	// 	created_at, updated_at FROM outage`
-	// }else{
-	// 	countStreet := ""
-	// 	if count[0] == "street" {
-	// 		// Add street to aggregate clause
-	// 		countStreet = " street, "
-	// 	}
-	// 	// Create count api of data
-	// 	main = fmt.Sprintf(
-	// 		`SELECT %s suburb, outage_type, 
-	// 		CASE 
-	// 			WHEN outage_type = 'Planned' AND extract(day from end_date - start_date) > 0
-	// 			THEN extract(day from end_date - start_date) * 2.85
-	// 			ELSE EXTRACT(EPOCH FROM end_date-start_date)/3600
-	// 		END total_hours, 
-	// 		count(suburb) as total_outages FROM outage`, countStreet,
-	// 	)
-	// 	// Create group by clause
-	// 	groupBy = fmt.Sprintf(
-	// 		"GROUP BY %s suburb, outage_type, total_hours ORDER BY total_outages desc", countStreet,
-	// 	)
-	// }
-
 
 	// Setup the database & model
     db := database.SetupDB()
@@ -56,6 +28,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query( main + filter)
 	
 	if err != nil {
+		log.Println(main + filter)
 		// Filter string is invalid.
 		rows, _ = db.Query( main )
 	}
@@ -91,6 +64,113 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	// Setup output headers & JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(outages)
+}
+
+// CountOutages JSON-encodes outages from the database of this app in a count-based format.
+func CountOutages(w http.ResponseWriter, r *http.Request){
+	log.Println("Received CountOutages request.")
+
+	// Setup database & output model
+	db := database.SetupDB()
+	var outages []DBWaterOutage
+
+	// Get parameters
+	params := r.URL.Query()
+	if params == nil {
+		// Setup output headers & JSON
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(AppError{
+			ErrorCode: 3443,
+			Message: "no parameters set",
+			Details: "No parameters were found. This API needs them to work.",
+		})
+	}
+
+	fields,_ := params["get"]
+
+	if fields == nil {
+		// Setup output headers & JSON
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(AppError{
+			ErrorCode: 3444,
+			Message: "required parameters not found",
+			Details: "This API requires a get parameter.",
+		})
+	}else{
+		// Generate filter (where) & group by string
+		filter := MakeFilterQuery(r)
+		var grouped []string
+
+		for _, element := range fields {
+			if IsFilterableOutage(element) && element != "aend_date" || 
+			element == "total_hours" {
+				grouped = append(grouped, element)
+			}
+		}
+
+		group := strings.Join(grouped, ", ")
+
+		// Generate main query string
+		main := fmt.Sprintf(
+			`SELECT %s, count(suburb) as total_outages FROM outage %s GROUP BY %s 
+			ORDER BY total_outages desc`, 
+			strings.Replace(
+				group, "total_hours",
+				`CASE WHEN outage_type = 'Planned' AND 
+				extract(day from end_date - start_date) > 0
+				THEN extract(day from end_date - start_date) * 2.85
+				ELSE EXTRACT(EPOCH FROM end_date-start_date)/3600
+				END total_hours`, 1,
+			), filter, group,
+		)
+
+		// Assemble query and get data from database
+		rows, err := db.Query( main )
+		
+		if err != nil {
+			// Filter string is invalid.
+			log.Println(main)
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(AppError{
+				ErrorCode: 3445,
+				Message: "unknown error",
+				Details: "Please contact me at xahkun@gmail.com to figure out this issue.",
+			})
+		}else{
+			// get the column names
+			columns, err := rows.Columns()
+			if err != nil {
+				log.Println(err)
+			}
+
+			numColumns := len(columns)
+
+			for rows.Next() {
+				// Create new outage
+				outage := DBWaterOutage{}
+
+				// make references for the columns by calling DBWaterOutageCol
+				column := make([]interface{}, numColumns)
+				for i := 0; i < numColumns; i++ {
+					column[i] = DBWaterOutageCol(columns[i], &outage)
+				}
+
+				err = rows.Scan(column...)
+				if err != nil {
+					log.Println(err)
+				}
+
+				// Append outage to all outages
+				outages = append(outages, outage)
+				log.Println(outage)
+			}
+
+			// Setup output headers & JSON
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(outages)
+		}
+	}
 }
 
 // MakeFilterQuery generates an SQL WHERE string based on given parameters.

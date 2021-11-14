@@ -1,5 +1,5 @@
 // models.go contains the database models from the official API 
-// & the database of this app.
+// & the database of this app. It also contains some mapping functions.
 
 package api
 
@@ -16,15 +16,52 @@ type WaterOutage struct {
 
 // A DBWaterOutage struct maps a water outage from the database of this app.
 type DBWaterOutage struct {
-	OutageID int `json:"outage_id"`
-	Street string `json:"street"`
-	Suburb string `json:"suburb"`
-	Location string `json:"location"`
-	StartDate string `json:"start_date"`
-	EndDate string `json:"end_date"`
-	OutageType string `json:"outage_type"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	OutageID int `json:"outage_id,omitempty"`
+	Street string `json:"street,omitempty"`
+	Suburb string `json:"suburb,omitempty"`
+	Location string `json:"location,omitempty"`
+	StartDate string `json:"start_date,omitempty"`
+	EndDate string `json:"end_date,omitempty"`
+	OutageType string `json:"outage_type,omitempty"`
+	CreatedAt string `json:"created_at,omitempty"`
+	UpdatedAt string `json:"updated_at,omitempty"`
+	TotalOutages int `json:"total_outages,omitempty"`
+	TotalHours int `json:"total_hours,omitempty"`
 }
 
-// A DBCountOutage struct maps count-based queries from the database of this app.
+// DBWaterOutageCol returns a reference for a column of a DBWaterOutage
+func DBWaterOutageCol(colname string, outage *DBWaterOutage) interface{} {
+    switch colname {
+		case "outage_id":
+			return &outage.OutageID
+		case "street":
+			return &outage.Street
+		case "suburb":
+			return &outage.Suburb
+		case "location":
+			return &outage.Location
+		case "start_date":
+			return &outage.StartDate
+		case "end_date":
+			return &outage.EndDate
+		case "outage_type":
+			return &outage.OutageType
+		case "created_at":
+			return &outage.CreatedAt
+		case "updated_at":
+			return &outage.UpdatedAt
+		case "total_outages":
+			return &outage.TotalOutages
+		case "total_hours":
+			return &outage.TotalHours
+		default:
+			panic("unknown column " + colname)
+    }
+}
+
+// An AppError struct maps an error for this app.
+type AppError struct {
+	ErrorCode int64 `json:"error_code"`
+	Message string `json:"message"`
+	Details string `json:"details"`
+}
