@@ -13,17 +13,6 @@ import (
 	"github.com/axkeyz/water-down-again/database"
 )
 
-// A WaterOutage struct maps a water outage from the Watercare API instance.
-type WaterOutage struct {
-	OutageID int64 `json:"outageId"`
-	Location string `json:"location"`
-	Latitude float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
-	StartDate string `json:"startDate"`
-	EndDate string `json:"endDate"`
-	OutageType string `json:"outageType"`
-}
-
 // GetAPIData returns the latest data as array of WaterOutage structs from the Watercare Outage API.
 func GetAPIData() []WaterOutage {
 	// Get data from the Watercare Outage API.
