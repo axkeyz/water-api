@@ -16,11 +16,9 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received GetOutage request.")
 
 	// Get parameters and assemble filter query
-	// params := r.URL.Query()
-	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
+	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, tage_type, 
 	created_at, updated_at FROM outage`
 	filter := MakeFilterQuery(r)
-	// groupBy := ""
 
 	// Assemble main query
 	// count, _ := params["count"]
