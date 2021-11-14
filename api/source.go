@@ -94,4 +94,5 @@ func WriteOutage(outage []WaterOutage) {
 func UpdateOutages() {
 	outages := GetAPIData()
 	WriteOutage(outages)
+	log.Println("Outage list has been updated.")
 }

@@ -26,6 +26,8 @@ type DBWaterOutage struct {
 
 // GetOutages JSON-encodes all outages from the database of this app
 func GetOutages(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received GetOutage request.")
+
 	// Query lines
 	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
 	created_at, updated_at FROM outage`
@@ -41,6 +43,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 
 		for key, element := range params {
 			if IsFilterableOutage(key) {
+				log.Println("Received filter for "+key)
+
 				// Only append fiterable outages to key parameters list
 				param, _ := params[key]
 				if param != nil {
@@ -107,6 +111,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: createdAt[:19] + "+13:00",
 			UpdatedAt: updatedAt[:19] + "+13:00",
 		})
+
+		log.Println(outages)
 	}
 
 	// Setup output headers & JSON

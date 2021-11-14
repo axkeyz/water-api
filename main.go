@@ -20,6 +20,7 @@ func main() {
 
 	// Run server
 	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Println("Server is running")
 
 	// Create cronjobs
 	c := cron.New()
