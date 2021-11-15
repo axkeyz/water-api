@@ -26,7 +26,7 @@ func main() {
 	// Create cronjobs
 	c := cron.New()
 	// Retrieve Watercare API & update app database
-	c.AddFunc("@hourly", api.UpdateOutages)
+	c.AddFunc("@45m", api.UpdateOutages)
 
 	c.Start()
  	select {}
