@@ -51,6 +51,13 @@ func UnpackAPIData(outages []WaterOutage) (string){
 	for i := range outages {
 		location := strings.Split(outages[i].Location, ",")
 
+		if len(location) == 1 {
+			location = strings.Split(location[0], " ")
+			street := strings.Join(location[0:len(location)-1], " ")
+			suburb := location[len(location)-1]
+			location[0], location[1] = street, suburb
+		}
+
 		arrOutages[i] = fmt.Sprintf("(%d,'%s','%s','POINT(%f %f)','%s', '%s', '%s')", 
 		outages[i].OutageID, strings.TrimSpace(location[0]), strings.TrimSpace(location[1]), outages[i].Longitude,
 		outages[i].Latitude, outages[i].StartDate, outages[i].EndDate, outages[i].OutageType)
