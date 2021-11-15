@@ -8,7 +8,7 @@ But one day, I'll prove it! Maybe.
 
 ## APIs
 
-There is only one API, available at the root of the server.
+1. Details of the API, available at the root of the server (/).
 
 It comes with the following (query) parameters:
 - outage_type
@@ -18,7 +18,11 @@ It comes with the following (query) parameters:
 - street
 - location (needs longitude + latitude + radius)
 
-Data is collected hourly.
+2. Count details, available at /count.
+
+It comes with the above query parameters. Can add "get" parameters (chained) as the above parameters to count & group by those columns. There is also a total_hours and total_outages that can be used as well.
+
+Data is collected every 45 minutes.
 
 ## Installation instructions
 
