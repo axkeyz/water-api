@@ -18,18 +18,18 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	// Get parameters and assemble filter query
 	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
 	created_at, updated_at FROM outage`
-	filter := MakeFilterQuery(r)
+	filter, order := MakeFilterQuery(r)
 
 	// Setup the database & model
     db := database.SetupDB()
 	var outages []DBWaterOutage
 
 	// Assemble query and get data from database
-	rows, err := db.Query( main + filter)
-	log.Println(main + filter)
+	rows, err := db.Query(main + filter + order)
+	log.Println(main + filter + order)
 	
 	if err != nil {
-		// Filter string is invalid.
+		// Filter or order string is invalid.
 		rows, _ = db.Query( main )
 	}
 
@@ -98,30 +98,31 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 		})
 	}else{
 		// Generate filter (where) & group by string
-		filter := MakeFilterQuery(r)
-		var grouped []string
+		filter, order := MakeFilterQuery(r)
+		var grouped, selected []string
 
 		for _, element := range fields {
-			if IsFilterableOutage(element) && element != "aend_date" || 
-			element == "total_hours" {
+			if IsFilterableOutage(element) && element != "aend_date" {
 				grouped = append(grouped, element)
+				selected = append(selected, element)
+			}else if element == "total_hours" {
+				selected = append(selected, 
+					`SUM(CASE WHEN outage_type = 'Planned' AND 
+					EXTRACT(day from end_date - start_date) > 0
+					THEN (EXTRACT(day from end_date - start_date) * 2.85)::float
+					ELSE (EXTRACT(EPOCH FROM end_date-start_date)/3600)::float
+					END) total_hours`,
+				)
 			}
 		}
 
 		group := strings.Join(grouped, ", ")
+		selects := strings.Join(selected, ", ")
 
 		// Generate main query string
 		main := fmt.Sprintf(
-			`SELECT %s, count(suburb) as total_outages FROM outage %s GROUP BY %s 
-			ORDER BY total_outages desc`, 
-			strings.Replace(
-				group, "total_hours",
-				`CASE WHEN outage_type = 'Planned' AND 
-				EXTRACT(day from end_date - start_date) > 0
-				THEN (EXTRACT(day from end_date - start_date) * 2.85)::float
-				ELSE (EXTRACT(EPOCH FROM end_date-start_date)/3600)::float
-				END total_hours`, 1,
-			), filter, group,
+			`SELECT %s, count(outage_id) as total_outages FROM outage %s GROUP BY %s 
+			%s`, selects, filter, group, order,
 		)
 
 		// Assemble query and get data from database
@@ -175,10 +176,11 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 }
 
 // MakeFilterQuery generates an SQL WHERE string based on given parameters.
-func MakeFilterQuery(r *http.Request) string {
+func MakeFilterQuery(r *http.Request) (string, string) {
 	// Get params
 	params := r.URL.Query()
 	filter := ""
+	order := ""
 
 	// if parameters exist
 	if len(params) > 0 {
@@ -210,6 +212,14 @@ func MakeFilterQuery(r *http.Request) string {
 					}
 				}
 				isValidFilter = true
+			}else if key == "sort" && IsFilterableOutage(element[0]) {
+				method, _ := params["order"]
+				sort := "asc"
+				if method != nil && method[0] == "desc" {
+					sort = "desc"
+				}
+
+				order = fmt.Sprintf(" ORDER BY %s %s", element[0], sort)
 			}
 		}
 
@@ -219,7 +229,7 @@ func MakeFilterQuery(r *http.Request) string {
 		}
 	}
 
-	return filter
+	return filter, order
 }
 
 // IsFilterableOutage returns true if a (url) parameter is filterable.
