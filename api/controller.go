@@ -26,9 +26,9 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 
 	// Assemble query and get data from database
 	rows, err := db.Query( main + filter)
+	log.Println(main + filter)
 	
 	if err != nil {
-		log.Println(main + filter)
 		// Filter string is invalid.
 		rows, _ = db.Query( main )
 	}
@@ -58,7 +58,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt: updatedAt[:19] + "+13:00",
 		})
 
-		log.Println(outages)
+		// log.Println(outages)
 	}
 
 	// Setup output headers & JSON
@@ -125,7 +125,8 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 		)
 
 		// Assemble query and get data from database
-		rows, err := db.Query( main )
+		rows, err := db.Query(main)
+		log.Println(main)
 		
 		if err != nil {
 			// Filter string is invalid.
@@ -163,7 +164,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 
 				// Append outage to all outages
 				outages = append(outages, outage)
-				log.Println(outage)
+				// log.Println(outage)
 			}
 
 			// Setup output headers & JSON
