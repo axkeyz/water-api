@@ -117,9 +117,9 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 			strings.Replace(
 				group, "total_hours",
 				`CASE WHEN outage_type = 'Planned' AND 
-				extract(day from end_date - start_date) > 0
-				THEN extract(day from end_date - start_date) * 2.85
-				ELSE EXTRACT(EPOCH FROM end_date-start_date)/3600
+				EXTRACT(day from end_date - start_date) > 0
+				THEN (EXTRACT(day from end_date - start_date) * 2.85)::float
+				ELSE (EXTRACT(EPOCH FROM end_date-start_date)/3600)::float
 				END total_hours`, 1,
 			), filter, group,
 		)

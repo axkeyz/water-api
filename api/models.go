@@ -25,8 +25,8 @@ type DBWaterOutage struct {
 	OutageType string `json:"outage_type,omitempty"`
 	CreatedAt string `json:"created_at,omitempty"`
 	UpdatedAt string `json:"updated_at,omitempty"`
-	TotalOutages uint8 `json:"total_outages,omitempty"`
-	TotalHours int `json:"total_hours,omitempty"`
+	TotalOutages int `json:"total_outages,omitempty"`
+	TotalHours float64 `json:"total_hours,omitempty"`
 }
 
 // DBWaterOutageCol returns a reference for a column of a DBWaterOutage
