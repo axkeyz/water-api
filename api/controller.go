@@ -212,7 +212,8 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 					}
 				}
 				isValidFilter = true
-			}else if key == "sort" && IsFilterableOutage(element[0]) {
+			}else if key == "sort" && IsFilterableOutage(element[0]) || 
+			key == "sort" && IsFilterableCountOutage(element[0]) {
 				method, _ := params["order"]
 				sort := "asc"
 				if method != nil && method[0] == "desc" {
@@ -240,6 +241,16 @@ func IsFilterableOutage(param string) bool {
 		return true
 	}
 
+	// default false
+	return false
+}
+
+// IsFilterableCountOutage extends IsFilterableOutage with extra filters. It
+// is attended to be a companion to IsFilterableOutage for the Count API.
+func IsFilterableCountOutage(param string) bool {
+	if param == "total_hours" || param == "total_outages" {
+		return true
+	}
 	// default false
 	return false
 }
