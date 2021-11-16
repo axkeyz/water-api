@@ -237,23 +237,25 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				isValidFilter = true
 			}else if key == "sort" {
 				// Get parameters for sorting
-				var sortParams []string
+				var sort []string
 
 				for _, i := range element {
-					sortParams = append(sortParams, i)
+					sort = append(sort, i)
 				}
 
-				sortedParams := strings.Join(sortParams, ", ")
+				sorted := strings.Join(sort, ", ")
 				
 				// Get sorting order (ascending / descending)
-				method, _ := params["order"]
-				sort := "asc"
-				if method != nil && method[0] == "desc" {
-					sort = "desc"
+				pagination := ""
+				limit, _ := params["limit"]
+				offset, _ := params["offset"]
+				if limit != nil && offset != nil {
+					// Pagination string
+					pagination = fmt.Sprintf("LIMIT %s OFFSET %s", limit[0], offset[0])
 				}
 
 				// Combine
-				order = fmt.Sprintf(" ORDER BY %s %s", sortedParams, sort)
+				order = fmt.Sprintf(" ORDER BY %s %s", sorted, pagination)
 			}
 		}
 
