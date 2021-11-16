@@ -235,15 +235,25 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 					}
 				}
 				isValidFilter = true
-			}else if key == "sort" && IsFilterableOutage(element[0]) || 
-			key == "sort" && IsFilterableCountOutage(element[0]) {
+			}else if key == "sort" {
+				// Get parameters for sorting
+				var sortParams []string
+
+				for _, i := range element {
+					sortParams = append(sortParams, i)
+				}
+
+				sortedParams := strings.Join(sortParams, ", ")
+				
+				// Get sorting order (ascending / descending)
 				method, _ := params["order"]
 				sort := "asc"
 				if method != nil && method[0] == "desc" {
 					sort = "desc"
 				}
 
-				order = fmt.Sprintf(" ORDER BY %s %s", element[0], sort)
+				// Combine
+				order = fmt.Sprintf(" ORDER BY %s %s", sortedParams, sort)
 			}
 		}
 
