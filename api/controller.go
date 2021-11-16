@@ -30,7 +30,12 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	
 	if err != nil {
 		// Filter or order string is invalid.
-		rows, _ = db.Query( main )
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(AppError{
+			ErrorCode: 3440,
+			Message: "invalid parameters",
+			Details: "Parameters given for this API were invalid.",
+		})
 	}
 
 	// Map each row of the database to a DBWaterOutage struct
@@ -43,6 +48,12 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			&outageType, &createdAt, &updatedAt)
 		if err != nil {
 			log.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(AppError{
+				ErrorCode: 3441,
+				Message: "unknown error",
+				Details: "Please contact me at xahkun@gmail.com to figure out this issue.",
+			})
 		}
 
 		// Save data to struct
@@ -144,6 +155,12 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 			columns, err := rows.Columns()
 			if err != nil {
 				log.Println(err)
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(AppError{
+					ErrorCode: 3446,
+					Message: "unknown error",
+					Details: "Please contact me at xahkun@gmail.com to figure out this issue.",
+				})
 			}
 
 			numColumns := len(columns)
@@ -161,6 +178,12 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 				err = rows.Scan(column...)
 				if err != nil {
 					log.Println(err)
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(AppError{
+						ErrorCode: 3447,
+						Message: "unknown error",
+						Details: "Please contact me at xahkun@gmail.com to figure out this issue.",
+					})
 				}
 
 				// Append outage to all outages
