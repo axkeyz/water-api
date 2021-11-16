@@ -11,16 +11,14 @@ import (
 func main() {
 	log.Println("Server is running")
 	
-	// Create a cronjob for every hour
+	// Create a cronjob for every hour to retrieve & write from Watercare API to this
+	// app's database
 	go func() {
 		for {
 			api.UpdateOutages()
 			<-time.After(1 * time.Hour)
 		}
 	}()
-	
-	// Retrieve & write from Watercare API to this app's database for the first time
-	api.UpdateOutages()
 
 	// Init the mux router
 	router := mux.NewRouter()
