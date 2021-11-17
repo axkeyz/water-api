@@ -15,6 +15,12 @@ import (
 func GetOutages(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received GetOutage request.")
 
+	// Setup CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+    if r.Method == http.MethodOptions {
+        return
+    }
+
 	// Get parameters and assemble filter query
 	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
 	created_at, updated_at FROM outage`
@@ -80,6 +86,12 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 // CountOutages JSON-encodes outages from the database of this app in a count-based format.
 func CountOutages(w http.ResponseWriter, r *http.Request){
 	log.Println("Received CountOutages request.")
+
+	// Setup CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+    if r.Method == http.MethodOptions {
+        return
+    }
 
 	// Setup database & output model
 	db := database.SetupDB()
@@ -193,6 +205,9 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 
 			// Setup output headers & JSON
 			w.Header().Set("Content-Type", "application/json")
+			//Allow CORS here By * or specific origin
+			w.Header().Set("Access-Control-Allow-Origin", "*.aileenhuang.dev")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 			json.NewEncoder(w).Encode(outages)
 		}
 	}

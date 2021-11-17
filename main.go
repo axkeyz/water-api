@@ -22,6 +22,7 @@ func main() {
 
 	// Init the mux router
 	router := mux.NewRouter()
+	router.Use(mux.CORSMethodMiddleware(router))
 
 	// Setup routes
 	router.HandleFunc("/", api.GetOutages).Methods("GET")
