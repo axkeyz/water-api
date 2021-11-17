@@ -22,8 +22,8 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
     }
 
 	// Get parameters and assemble filter query
-	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, outage_type, 
-	created_at, updated_at FROM outage`
+	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, 
+	outage_type FROM outage`
 	filter, order := MakeFilterQuery(r)
 
 	// Setup the database & model
@@ -47,11 +47,11 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	// Map each row of the database to a DBWaterOutage struct
 	for rows.Next() {
 		var outageID int
-		var street, suburb, location, startDate, endDate, outageType, createdAt, updatedAt string
+		var street, suburb, location, startDate, endDate, outageType string
 
 		// Get data in the row
 		err = rows.Scan(&outageID, &street, &suburb, &location, &startDate, &endDate, 
-			&outageType, &createdAt, &updatedAt)
+			&outageType)
 		if err != nil {
 			log.Println(err)
 			w.Header().Set("Content-Type", "application/json")
@@ -71,8 +71,6 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			StartDate: startDate[:19] + "+13:00",
 			EndDate: endDate[:19] + "+13:00",
 			OutageType: outageType,
-			CreatedAt: createdAt[:19] + "+13:00",
-			UpdatedAt: updatedAt[:19] + "+13:00",
 		})
 
 		// log.Println(outages)

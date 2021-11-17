@@ -16,17 +16,17 @@ type WaterOutage struct {
 
 // A DBWaterOutage struct maps a water outage from the database of this app.
 type DBWaterOutage struct {
-	OutageID int `json:"outage_id,omitempty"`
-	Street string `json:"street,omitempty"`
-	Suburb string `json:"suburb,omitempty"`
-	Location string `json:"location,omitempty"`
-	StartDate string `json:"start_date,omitempty"`
-	EndDate string `json:"end_date,omitempty"`
-	OutageType string `json:"outage_type,omitempty"`
-	CreatedAt string `json:"created_at,omitempty"`
-	UpdatedAt string `json:"updated_at,omitempty"`
-	TotalOutages int `json:"total_outages,omitempty"`
-	TotalHours float64 `json:"total_hours,omitempty"`
+	OutageID int `json:"Outage ID,omitempty"`
+	Street string `json:"Street,omitempty"`
+	Suburb string `json:"Suburb,omitempty"`
+	Location string `json:"Location,omitempty"`
+	StartDate string `json:"Start Date,omitempty"`
+	EndDate string `json:"End Date,omitempty"`
+	OutageType string `json:"Outage Type,omitempty"`
+	CreatedAt string `json:"Created At,omitempty"`
+	UpdatedAt string `json:"Updated At,omitempty"`
+	TotalOutages int `json:"Total Outages,omitempty"`
+	TotalHours float64 `json:"Total Hours,omitempty"`
 }
 
 // DBWaterOutageCol returns a reference for a column of a DBWaterOutage
@@ -61,7 +61,7 @@ func DBWaterOutageCol(colname string, outage *DBWaterOutage) interface{} {
 
 // An AppError struct maps an error for this app.
 type AppError struct {
-	ErrorCode int64 `json:"error_code"`
-	Message string `json:"message"`
-	Details string `json:"details"`
+	ErrorCode int64 `json:"Error Code"`
+	Message string `json:"Message"`
+	Details string `json:"Details"`
 }
