@@ -123,7 +123,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 		var grouped, selected []string
 
 		for _, element := range fields {
-			if IsFilterableOutage(element) && element != "aend_date" {
+			if IsFilterableOutage(element) {
 				grouped = append(grouped, element)
 				selected = append(selected, element)
 			}else if element == "total_hours" {
@@ -137,12 +137,16 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 			}
 		}
 
-		group := strings.Join(grouped, ", ")
+		group := "GROUP BY " + strings.Join(grouped, ", ")
+
+		if len(grouped) == 0 {
+			group = ""
+		}
 		selects := strings.Join(selected, ", ")
 
 		// Generate main query string
 		main := fmt.Sprintf(
-			`SELECT %s, count(outage_id) as total_outages FROM outage %s GROUP BY %s 
+			`SELECT %s, count(outage_id) as total_outages FROM outage %s %s 
 			%s`, selects, filter, group, order,
 		)
 
@@ -204,7 +208,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request){
 			// Setup output headers & JSON
 			w.Header().Set("Content-Type", "application/json")
 			//Allow CORS here By * or specific origin
-			w.Header().Set("Access-Control-Allow-Origin", "*.aileenhuang.dev")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 			json.NewEncoder(w).Encode(outages)
 		}
@@ -232,19 +236,27 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				if param != nil {
 					if key == "start_date" {
 						keyParams = append(keyParams, fmt.Sprintf("%s >= '%s'", key, element[0]))
-					}else if key == "aend_date" {
+					}else if key == "end_date" {
 						keyParams = append(keyParams, fmt.Sprintf("end_date <= '%s'", element[0]))
 					}else if key == "location" {
-						radius, _ := params["radius"]
-						longitude, _ := params["longitude"]
-						latitude, _ := params["latitude"]
+						radius := element[2]
+						longitude := element[0]
+						latitude := element[1]
 
 						keyParams = append(keyParams, fmt.Sprintf(
 							"ST_DWithin(location, ST_SetSRID(ST_Point(%s, %s), 4326), %s)",
 							longitude[0], latitude[0], radius[0],
 						))
+					}else if key == "outage_type" {
+						keyParams = append(keyParams, strings.Join(elems, fmt.Sprintf("%s = '%s'", key, element[0])))
 					}else{
-						keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))
+						// Allow chaining (query equivalent = OR)
+						var elems []string
+						for _, i := range element {
+							elems = append(elems, fmt.Sprintf("lower(cast(%s as text)) LIKE lower('%%%s%%')", key, i))
+						}
+
+						keyParams = append(keyParams, strings.Join(elems, " OR "))
 					}
 				}
 				isValidFilter = true
@@ -284,8 +296,8 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 // IsFilterableOutage returns true if a (url) parameter is filterable.
 func IsFilterableOutage(param string) bool {
 	if param == "suburb" || param == "street" || param == "outage_type" || 
-	param == "start_date" || param == "end_date" || param == "aend_date" ||
-	param == "location" {
+	param == "start_date" || param == "end_date" || 
+	param == "location" || param == "outage_id" {
 		return true
 	}
 
