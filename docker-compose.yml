@@ -37,7 +37,7 @@ services:
       - postgres
 
   api:
-    image: axkeyz/water:v1.1
+    image: axkeyz/water:v1.2
     container_name: api_water
     env_file:
       - .env
