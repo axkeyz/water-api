@@ -72,6 +72,7 @@ func UnpackAPIData(outages []WaterOutage) (string){
 func WriteOutage(outage []WaterOutage) {
 	// Open database
 	db := database.SetupDB()
+	defer db.Close()
 
 	// Prepare SQL Statement
 	sqlStatement := `insert into outage (outage_id, street, suburb, location, start_date, end_date, outage_type)  
