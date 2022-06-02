@@ -21,6 +21,9 @@ func main() {
 		}
 	}()
 
+	// Reformat street and suburb of old outages from previous builds
+	api.CleanupOutages()
+
 	// Init the mux router
 	router := mux.NewRouter()
 	router.Use(mux.CORSMethodMiddleware(router))

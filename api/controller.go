@@ -50,6 +50,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Map each row of the database to a DBWaterOutage struct
+	defer rows.Close()
 	for rows.Next() {
 		var outageID int
 		var street, suburb, location, startDate, endDate, outageType string
@@ -80,7 +81,6 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 
 		// log.Println(outages)
 	}
-	defer rows.Close()
 
 	// Setup output headers & JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -187,6 +187,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 
 			numColumns := len(columns)
 
+			defer rows.Close()
 			for rows.Next() {
 				// Create new outage
 				outage := DBWaterOutage{}
@@ -212,8 +213,6 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 				outages = append(outages, outage)
 				// log.Println(outage)
 			}
-
-			defer rows.Close()
 
 			// Setup output headers & JSON
 			w.Header().Set("Content-Type", "application/json")

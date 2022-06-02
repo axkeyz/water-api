@@ -5,5 +5,5 @@ go 1.13
 require (
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.4
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.7
 )
