@@ -3,9 +3,9 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-	"fmt"
 	"strings"
 )
 
@@ -23,16 +23,16 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 
 		for key, element := range params {
 			if IsFilterableOutage(key) || key == "search" {
-				log.Println("Received filter for "+key)
+				log.Println("Received filter for " + key)
 
 				// Only append fiterable outages to key parameters list
 				param, _ := params[key]
 				if param != nil {
 					if key == "start_date" {
 						keyParams = append(keyParams, fmt.Sprintf("%s >= '%s'", key, element[0]))
-					}else if key == "end_date" {
+					} else if key == "end_date" {
 						keyParams = append(keyParams, fmt.Sprintf("end_date <= '%s'", element[0]))
-					}else if key == "location" {
+					} else if key == "location" {
 						radius := element[2]
 						longitude := element[0]
 						latitude := element[1]
@@ -41,18 +41,18 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 							"ST_DWithin(location, ST_SetSRID(ST_Point(%s, %s), 4326), %s)",
 							longitude, latitude, radius,
 						))
-					}else if key == "outage_type" {
+					} else if key == "outage_type" {
 						keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))
-					}else if key == "search" {
+					} else if key == "search" {
 						keyParams = append(keyParams,
 							fmt.Sprintf(
 								`lower(suburb) LIKE lower('%%%s%%') OR
 								lower(street) LIKE lower('%%%s%%') OR
 								lower(cast(outage_id as text)) LIKE lower('%%%s%%')`,
-								element[0], element[0], element[0], 
+								element[0], element[0], element[0],
 							),
 						)
-					}else{
+					} else {
 						// Allow chaining (query equivalent = OR)
 						var elems []string
 						for _, i := range element {
@@ -63,7 +63,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 					}
 				}
 				isValidFilter = true
-			}else if key == "sort" {
+			} else if key == "sort" {
 				// Get parameters for sorting
 				var sort []string
 
@@ -72,7 +72,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				}
 
 				sorted := strings.Join(sort, ", ")
-				
+
 				// Get sorting order (ascending / descending)
 				pagination := ""
 				limit, _ := params["limit"]
@@ -98,9 +98,9 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 
 // IsFilterableOutage returns true if a (url) parameter is filterable.
 func IsFilterableOutage(param string) bool {
-	if param == "suburb" || param == "street" || param == "outage_type" || 
-	param == "start_date" || param == "end_date" || 
-	param == "location" || param == "outage_id" {
+	if param == "suburb" || param == "street" || param == "outage_type" ||
+		param == "start_date" || param == "end_date" ||
+		param == "location" || param == "outage_id" {
 		return true
 	}
 

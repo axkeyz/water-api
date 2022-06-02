@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/axkeyz/water-down-again/api"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/axkeyz/water-down-again/api"
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	log.Println("Server is running")
-	
+
 	// Create a cronjob for every hour to retrieve & write from Watercare API to this
 	// app's database
 	go func() {
