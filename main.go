@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/axkeyz/water-down-again/api"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/axkeyz/water-down-again/api"
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	log.Println("Server is running")
-	
+
 	// Create a cronjob for every hour to retrieve & write from Watercare API to this
 	// app's database
 	go func() {
@@ -19,6 +20,9 @@ func main() {
 			<-time.After(1 * time.Hour)
 		}
 	}()
+
+	// Reformat street and suburb of old outages from previous builds
+	api.CleanupOutages()
 
 	// Init the mux router
 	router := mux.NewRouter()

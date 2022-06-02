@@ -3,13 +3,14 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"encoding/json"
 	"strings"
+
 	"github.com/axkeyz/water-down-again/database"
 )
 
@@ -25,7 +26,7 @@ func GetAPIData() []WaterOutage {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-	
+
 	// Read response data
 	outagesJSON, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -42,25 +43,18 @@ func GetAPIData() []WaterOutage {
 // UnpackAPIData converts an array of WaterOutage structs into a string for SQL insertion.
 // The data is returned as comma separated list where each element looks like:
 // (OutageID, 'Street', 'Suburb', '(Longitude, Latitude)', 'StartDate', 'EndDate', 'OutageType')
-func UnpackAPIData(outages []WaterOutage) (string){
+func UnpackAPIData(outages []WaterOutage) string {
 	// Initialise all variables
 	numOutage := len(outages)
 	arrOutages := make([]string, numOutage)
 
 	// Loop through WaterOutages, separate and assign to individual array
 	for i := range outages {
-		location := strings.Split(outages[i].Location, ",")
+		street, suburb := AddressToStreetSuburb(outages[i].Location)
 
-		if len(location) == 1 {
-			location = strings.Split(location[0], " ")
-			street := strings.Join(location[0:len(location)-1], " ")
-			suburb := location[len(location)-1]
-			location[0], location[1] = street, suburb
-		}
-
-		arrOutages[i] = fmt.Sprintf("(%d,'%s','%s','POINT(%f %f)','%s', '%s', '%s')", 
-		outages[i].OutageID, strings.TrimSpace(location[0]), strings.TrimSpace(location[1]), outages[i].Longitude,
-		outages[i].Latitude, outages[i].StartDate, outages[i].EndDate, outages[i].OutageType)
+		arrOutages[i] = fmt.Sprintf("(%d,'%s','%s','POINT(%f %f)','%s', '%s', '%s')",
+			outages[i].OutageID, strings.TrimSpace(street), strings.TrimSpace(suburb), outages[i].Longitude,
+			outages[i].Latitude, outages[i].StartDate, outages[i].EndDate, outages[i].OutageType)
 	}
 
 	return strings.Join(arrOutages[:], ", ")
