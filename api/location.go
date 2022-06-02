@@ -15,7 +15,7 @@ var street_abbreviations = map[string]string{
 
 // suburb_abbreviations maps common suburb suffix abbreviations to their uncondensed counterpart.
 var suburb_abbreviations = map[string]string{
-	"mt": "Mount", "pt": "Point", "st": "Saint",
+	"mt": "Mount", "pt": "Point", "st": "Saint", "cbd": "Central",
 }
 
 // suburbs is a slice of most Auckland suburbs.

@@ -61,11 +61,6 @@ func UnabbreviateAddressName(address string, address_type string) string {
 		}
 	}
 
-	// Do not titlecase CBD
-	if address == "cbd" {
-		return "CBD"
-	}
-
 	return caser.String(address)
 }
 
@@ -84,7 +79,7 @@ func AddressToStreetSuburb(address string) (string, string) {
 		index := length
 		for i := 0; i < length; i++ {
 			if strings.Contains(address_slice[i], "auckland") &&
-				!strings.Contains(address_slice[i], "auckland cbd") {
+				!strings.Contains(address_slice[i], "auckland central") {
 				// Reassign index if there are extra commas after the suburb
 				index = i
 				break
