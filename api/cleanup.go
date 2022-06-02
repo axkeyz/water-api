@@ -21,7 +21,7 @@ func CleanAddressName(address string, address_type string) string {
 	var add_location bool
 
 	// Iterate through each word
-	for _, j := range location {
+	for i, j := range location {
 		add_location = true
 
 		// Iterate through each letter
@@ -34,7 +34,12 @@ func CleanAddressName(address string, address_type string) string {
 			}
 		}
 
-		j = UnabbreviateAddressName(j, address_type)
+		if address_type == "street" && i == 0 {
+			// Ignore first 'st' of streets
+			j = UnabbreviateAddressName(j, "suburb")
+		} else {
+			j = UnabbreviateAddressName(j, address_type)
+		}
 
 		if add_location {
 			// Only add words that do not contain numbers
