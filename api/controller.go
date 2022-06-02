@@ -35,7 +35,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 
 	// Assemble query and get data from database
 	rows, err := db.Query(main + filter + order)
-	defer rows.Close()
+
 	log.Println(main + filter + order)
 
 	if err != nil {
@@ -80,11 +80,11 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 
 		// log.Println(outages)
 	}
+	defer rows.Close()
 
 	// Setup output headers & JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(outages)
-	return
 }
 
 // CountOutages JSON-encodes outages from the database of this app in a count-based format.
@@ -114,7 +114,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	fields, _ := params["get"]
+	fields := params["get"]
 
 	if fields == nil {
 		// Setup output headers & JSON
@@ -159,7 +159,6 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 
 		// Assemble query and get data from database
 		rows, err := db.Query(main)
-		defer rows.Close()
 		log.Println(main)
 
 		if err != nil {
@@ -214,6 +213,8 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 				// log.Println(outage)
 			}
 
+			defer rows.Close()
+
 			// Setup output headers & JSON
 			w.Header().Set("Content-Type", "application/json")
 			//Allow CORS here By * or specific origin
@@ -222,5 +223,4 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(outages)
 		}
 	}
-	return
 }

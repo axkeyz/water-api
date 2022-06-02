@@ -26,7 +26,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				log.Println("Received filter for " + key)
 
 				// Only append fiterable outages to key parameters list
-				param, _ := params[key]
+				param := params[key]
 				if param != nil {
 					if key == "start_date" {
 						keyParams = append(keyParams, fmt.Sprintf("%s >= '%s'", key, element[0]))
@@ -67,16 +67,14 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				// Get parameters for sorting
 				var sort []string
 
-				for _, i := range element {
-					sort = append(sort, i)
-				}
+				sort = append(sort, element...)
 
 				sorted := strings.Join(sort, ", ")
 
 				// Get sorting order (ascending / descending)
 				pagination := ""
-				limit, _ := params["limit"]
-				offset, _ := params["offset"]
+				limit := params["limit"]
+				offset := params["offset"]
 				if limit != nil && offset != nil {
 					// Pagination string
 					pagination = fmt.Sprintf("LIMIT %s OFFSET %s", limit[0], offset[0])
