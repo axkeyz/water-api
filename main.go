@@ -31,6 +31,7 @@ func main() {
 	// Setup routes
 	router.HandleFunc("/", api.GetOutages).Methods("GET")
 	router.HandleFunc("/count", api.CountOutages).Methods("GET")
+	router.HandleFunc("/current", api.GetCurrentOutages).Methods("GET")
 
 	// Run server
 	log.Println(http.ListenAndServe(":8080", router))

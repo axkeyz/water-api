@@ -28,10 +28,18 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				// Only append fiterable outages to key parameters list
 				param := params[key]
 				if param != nil {
-					if key == "start_date" {
-						keyParams = append(keyParams, fmt.Sprintf("%s >= '%s'", key, element[0]))
-					} else if key == "end_date" {
+					if key == "after_start_date" {
+						key = "start_date"
+						keyParams = append(keyParams, fmt.Sprintf("start_date >= '%s'", element[0]))
+					} else if key == "before_start_date" {
+						key = "start_date"
+						keyParams = append(keyParams, fmt.Sprintf("start_date >= '%s'", element[0]))
+					} else if key == "before_end_date" {
+						key = "end_date"
 						keyParams = append(keyParams, fmt.Sprintf("end_date <= '%s'", element[0]))
+					} else if key == "after_end_date" {
+						key = "end_date"
+						keyParams = append(keyParams, fmt.Sprintf("end_date >= '%s'", element[0]))
 					} else if key == "location" {
 						radius := element[2]
 						longitude := element[0]
@@ -46,9 +54,9 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 					} else if key == "search" {
 						keyParams = append(keyParams,
 							fmt.Sprintf(
-								`lower(suburb) LIKE lower('%%%s%%') OR
+								`(lower(suburb) LIKE lower('%%%s%%') OR
 								lower(street) LIKE lower('%%%s%%') OR
-								lower(cast(outage_id as text)) LIKE lower('%%%s%%')`,
+								lower(cast(outage_id as text)) LIKE lower('%%%s%%'))`,
 								element[0], element[0], element[0],
 							),
 						)
@@ -97,8 +105,9 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 // IsFilterableOutage returns true if a (url) parameter is filterable.
 func IsFilterableOutage(param string) bool {
 	if param == "suburb" || param == "street" || param == "outage_type" ||
-		param == "start_date" || param == "end_date" ||
-		param == "location" || param == "outage_id" {
+		param == "before_start_date" || param == "before_end_date" || param == "after_end_date" ||
+		param == "after_start_date" || param == "location" || param == "outage_id" ||
+		param == "start_date" || param == "end_date" {
 		return true
 	}
 
@@ -113,5 +122,16 @@ func IsFilterableCountOutage(param string) bool {
 		return true
 	}
 	// default false
+	return false
+}
+
+// Checks if an outage id is in a list of current outage ids.
+func IsCurrentOutage(outage_id int, current_outage_ids []int) bool {
+	// Check if is active outage
+	for _, current_outage_id := range current_outage_ids {
+		if outage_id == current_outage_id {
+			return true
+		}
+	}
 	return false
 }

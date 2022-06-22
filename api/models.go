@@ -5,7 +5,7 @@ package api
 
 // A WaterOutage struct maps a water outage from the Watercare API instance.
 type WaterOutage struct {
-	OutageID   int64   `json:"outageId"`
+	OutageID   int     `json:"outageId"`
 	Location   string  `json:"location"`
 	Latitude   float64 `json:"latitude"`
 	Longitude  float64 `json:"longitude"`
@@ -27,6 +27,7 @@ type DBWaterOutage struct {
 	UpdatedAt    string  `json:"updated_at,omitempty"`
 	TotalOutages int     `json:"total_outages,omitempty"`
 	TotalHours   float64 `json:"total_hours,omitempty"`
+	Status       bool    `json:"status"`
 }
 
 // DBWaterOutageCol returns a reference for a column of a DBWaterOutage

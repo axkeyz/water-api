@@ -17,10 +17,7 @@ import (
 // GetAPIData returns the latest data as array of WaterOutage structs from the Watercare Outage API.
 func GetAPIData() []WaterOutage {
 	// Get data from the Watercare Outage API.
-	response, err := http.Get("https://api.watercare.co.nz/outages/all")
-
-	// Test API Route
-	// response, err := http.Get("https://618a623134b4f400177c4603.mockapi.io/wateroutage")
+	response, err := http.Get(os.Getenv("SRC_API"))
 
 	if err != nil {
 		fmt.Print(err.Error())
@@ -86,4 +83,16 @@ func UpdateOutages() {
 	outages := GetAPIData()
 	WriteOutage(outages)
 	log.Println("Outage list has been updated.")
+}
+
+// GetCurrentOutageIDs returns an int slice of all currently active outage ids.
+func GetCurrentOutageIDs() []int {
+	current_outages := GetAPIData()
+	var current_outage_ids []int
+
+	for _, current_outage := range current_outages {
+		current_outage_ids = append(current_outage_ids, current_outage.OutageID)
+	}
+
+	return current_outage_ids
 }

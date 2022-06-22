@@ -49,6 +49,9 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	// Get current outage IDs
+	current_outage_ids := GetCurrentOutageIDs()
+
 	// Map each row of the database to a DBWaterOutage struct
 	defer rows.Close()
 	for rows.Next() {
@@ -77,6 +80,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			StartDate:  startDate[:19] + "+13:00",
 			EndDate:    endDate[:19] + "+13:00",
 			OutageType: outageType,
+			Status:     IsCurrentOutage(outageID, current_outage_ids),
 		})
 
 		// log.Println(outages)
@@ -131,6 +135,10 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 
 		for _, element := range fields {
 			if IsFilterableOutage(element) {
+				if strings.Contains(element, "start_date") && element != "start_date" ||
+					strings.Contains(element, "end_date") && element != "end_date" {
+					element = strings.Join(strings.Split(element, "_")[1:2], "_")
+				}
 				grouped = append(grouped, element)
 				selected = append(selected, element)
 			} else if element == "total_hours" {
@@ -187,6 +195,9 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 
 			numColumns := len(columns)
 
+			// Get current outage IDs
+			current_outage_ids := GetCurrentOutageIDs()
+
 			defer rows.Close()
 			for rows.Next() {
 				// Create new outage
@@ -209,6 +220,8 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 					})
 				}
 
+				outage.Status = IsCurrentOutage(outage.OutageID, current_outage_ids)
+
 				// Append outage to all outages
 				outages = append(outages, outage)
 				// log.Println(outage)
@@ -222,4 +235,18 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(outages)
 		}
 	}
+}
+
+// GetCurrentOutages only gets the currently active outages.
+func GetCurrentOutages(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received GetCurrentOutages request.")
+
+	outages := GetAPIData()
+
+	// Setup output headers & JSON
+	w.Header().Set("Content-Type", "application/json")
+	//Allow CORS here By * or specific origin
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	json.NewEncoder(w).Encode(outages)
 }

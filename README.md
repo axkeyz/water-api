@@ -12,8 +12,8 @@ But one day, I'll prove it! Maybe.
 
     It comes with the following (query) parameters - these narrow down data.
     - outage_type
-    - start_date (after)
-    - end_date (before)
+    - before_start_date & after_start_date
+    - before_end_date & after_end_date
     - suburb
     - street
     - location (needs longitude + latitude + radius)
@@ -50,6 +50,7 @@ Gets total outages & hours of 10 suburbs, descending sorted by total number of o
 1. Copy the following files & make changes as needed:
     - docker-compose.yml
     - .env-example: Rename to .env when done
+        - SRC_API: Original outage API (replace for testing purposes)
     - docker_postgres_init.sql
 2. Pull prepared image from DockerHub and start: ```docker-compose up -d```
 3. Navigate to localhost:APP_PORT (whatever you set up in the .env file)
