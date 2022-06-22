@@ -236,17 +236,3 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-
-// GetCurrentOutages only gets the currently active outages.
-func GetCurrentOutages(w http.ResponseWriter, r *http.Request) {
-	log.Println("Received GetCurrentOutages request.")
-
-	outages := GetAPIData()
-
-	// Setup output headers & JSON
-	w.Header().Set("Content-Type", "application/json")
-	//Allow CORS here By * or specific origin
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	json.NewEncoder(w).Encode(outages)
-}
