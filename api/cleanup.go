@@ -16,13 +16,20 @@ import (
 // CleanAddressName removes all numbers (unit/street numbers, postcodes) from
 // an address string and returns the address in title-case.
 func CleanAddressName(address string, address_type string) string {
-	location := strings.Split(address, " ")
+	location := strings.Split(strings.ToLower(address), " ")
 	var cleaned_location []string
 	var add_location bool
+	first_word := 0
 
 	// Iterate through each word
 	for i, j := range location {
 		add_location = true
+
+		// Remove "flat" and "unit"
+		if j == "flat" || j == "unit" {
+			add_location = false
+			first_word = i + 1
+		}
 
 		// Iterate through each letter
 		for _, k := range j {
@@ -30,11 +37,12 @@ func CleanAddressName(address string, address_type string) string {
 				// If a letter contains a number (unit, street, postcode), do not
 				// add word to final address
 				add_location = false
+				first_word = i + 1
 				break
 			}
 		}
 
-		if address_type == "street" && i == 0 {
+		if address_type == "street" && first_word == i {
 			// Ignore first 'st' of streets
 			j = UnabbreviateAddressName(j, "suburb")
 		} else {
@@ -84,7 +92,8 @@ func AddressToStreetSuburb(address string) (string, string) {
 		index := length
 		for i := 0; i < length; i++ {
 			if strings.Contains(address_slice[i], "auckland") &&
-				!strings.Contains(address_slice[i], "auckland central") {
+				!strings.Contains(address_slice[i], "auckland central") &&
+				!strings.Contains(address_slice[i], "auckland cbd") {
 				// Reassign index if there are extra commas after the suburb
 				index = i
 				break
