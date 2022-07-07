@@ -118,121 +118,120 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	// Create "filter" phrase, or the "WHERE" part in an SQL query
 	fields := params["get"]
 
-	if fields == nil {
-		// Setup output headers & JSON
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(AppError{
-			ErrorCode: 3444,
-			Message:   "required parameters not found",
-			Details:   "This API requires a get parameter.",
-		})
-	} else {
-		// Generate filter (where) & group by string
-		filter, order := MakeFilterQuery(r)
-		var grouped, selected []string
+	filter, order := MakeFilterQuery(r)
+	var grouped, selected []string
 
-		for _, element := range fields {
-			if IsFilterableOutage(element) {
-				if strings.Contains(element, "start_date") && element != "start_date" ||
-					strings.Contains(element, "end_date") && element != "end_date" {
-					element = strings.Join(strings.Split(element, "_")[1:2], "_")
-				}
-				grouped = append(grouped, element)
-				selected = append(selected, element)
-			} else if element == "total_hours" {
-				selected = append(selected,
-					`SUM(CASE WHEN outage_type = 'Planned' AND 
-					EXTRACT(day from end_date - start_date) > 0
-					THEN (EXTRACT(day from end_date - start_date) * 2.85)::float
-					ELSE (EXTRACT(EPOCH FROM end_date-start_date)/3600)::float
-					END) total_hours`,
-				)
+	for _, element := range fields {
+		if IsFilterableOutage(element) {
+			if strings.Contains(element, "start_date") && element != "start_date" ||
+				strings.Contains(element, "end_date") && element != "end_date" {
+				element = strings.Join(strings.Split(element, "_")[1:2], "_")
 			}
+			grouped = append(grouped, element)
+			selected = append(selected, element)
+		} else if element == "total_hours" {
+			selected = append(selected,
+				`SUM(CASE WHEN outage_type = 'Planned' AND 
+				EXTRACT(day from end_date - start_date) > 0
+				THEN (EXTRACT(day from end_date - start_date) * 2.85)::float
+				ELSE (EXTRACT(EPOCH FROM end_date-start_date)/3600)::float
+				END) total_hours`,
+			)
 		}
+	}
 
-		group := "GROUP BY " + strings.Join(grouped, ", ")
+	// Create the GROUP BY part of an SQL query
+	group := "GROUP BY " + strings.Join(grouped, ", ")
 
-		if len(grouped) == 0 {
-			group = ""
-		}
-		selects := strings.Join(selected, ", ")
+	if len(grouped) == 0 {
+		group = ""
+	}
 
-		// Generate main query string
-		main := fmt.Sprintf(
-			`SELECT %s, count(outage_id) as total_outages FROM outage %s %s 
-			%s`, selects, filter, group, order,
-		)
+	// Create select string
+	var selects string
+	if len(selected) > 0 {
+		selects = strings.Join(selected, ", ") + ","
+	} else {
+		selects = ""
+	}
 
-		// Assemble query and get data from database
-		rows, err := db.Query(main)
+	// Generate main query string
+	main := fmt.Sprintf(
+		`SELECT %s count(outage_id) as total_outages FROM outage %s %s 
+		%s`, selects, filter, group, order,
+	)
+
+	// Assemble query and get data from database
+	rows, err := db.Query(main)
+	log.Println(main)
+
+	if err != nil {
+		// Filter string is invalid.
+		log.Println(err)
 		log.Println(main)
 
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(AppError{
+			ErrorCode: 3445,
+			Message:   "unknown error",
+			Details:   "Please contact me at xahkun@gmail.com to figure out this issue.",
+		})
+	} else {
+		// get the column names
+		columns, err := rows.Columns()
 		if err != nil {
-			// Filter string is invalid.
 			log.Println(err)
-			log.Println(main)
-
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(AppError{
-				ErrorCode: 3445,
+				ErrorCode: 3446,
 				Message:   "unknown error",
 				Details:   "Please contact me at xahkun@gmail.com to figure out this issue.",
 			})
-		} else {
-			// get the column names
-			columns, err := rows.Columns()
+		}
+
+		numColumns := len(columns)
+
+		// Get current outage IDs
+		current_outage_ids := GetCurrentOutageIDs()
+
+		defer rows.Close()
+		for rows.Next() {
+			// Create new outage
+			outage := DBWaterOutage{}
+
+			// make references for the columns by calling DBWaterOutageCol
+			column := make([]interface{}, numColumns)
+			for i := 0; i < numColumns; i++ {
+				column[i] = DBWaterOutageCol(columns[i], &outage)
+			}
+
+			err = rows.Scan(column...)
 			if err != nil {
 				log.Println(err)
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(AppError{
-					ErrorCode: 3446,
+					ErrorCode: 3447,
 					Message:   "unknown error",
 					Details:   "Please contact me at xahkun@gmail.com to figure out this issue.",
 				})
 			}
 
-			numColumns := len(columns)
+			outage.Status = IsCurrentOutage(outage.OutageID, current_outage_ids)
 
-			// Get current outage IDs
-			current_outage_ids := GetCurrentOutageIDs()
-
-			defer rows.Close()
-			for rows.Next() {
-				// Create new outage
-				outage := DBWaterOutage{}
-
-				// make references for the columns by calling DBWaterOutageCol
-				column := make([]interface{}, numColumns)
-				for i := 0; i < numColumns; i++ {
-					column[i] = DBWaterOutageCol(columns[i], &outage)
-				}
-
-				err = rows.Scan(column...)
-				if err != nil {
-					log.Println(err)
-					w.Header().Set("Content-Type", "application/json")
-					json.NewEncoder(w).Encode(AppError{
-						ErrorCode: 3447,
-						Message:   "unknown error",
-						Details:   "Please contact me at xahkun@gmail.com to figure out this issue.",
-					})
-				}
-
-				outage.Status = IsCurrentOutage(outage.OutageID, current_outage_ids)
-
-				// Append outage to all outages
-				outages = append(outages, outage)
-				// log.Println(outage)
-			}
-
-			// Setup output headers & JSON
-			w.Header().Set("Content-Type", "application/json")
-			//Allow CORS here By * or specific origin
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			json.NewEncoder(w).Encode(outages)
+			// Append outage to all outages
+			outages = append(outages, outage)
+			// log.Println(outage)
 		}
+
+		// Setup output headers & JSON
+		w.Header().Set("Content-Type", "application/json")
+		//Allow CORS here By * or specific origin
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		json.NewEncoder(w).Encode(outages)
 	}
+	// }
 }

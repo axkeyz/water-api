@@ -16,22 +16,24 @@ import (
 
 // GetAPIData returns the latest data as array of WaterOutage structs from the Watercare Outage API.
 func GetAPIData() []WaterOutage {
+	var outages []WaterOutage
+
 	// Get data from the Watercare Outage API.
 	response, err := http.Get(os.Getenv("SRC_API"))
 
 	if err != nil {
-		fmt.Print(err.Error())
-		os.Exit(1)
+		log.Println(err.Error())
+		return outages
 	}
 
 	// Read response data
 	outagesJSON, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		log.Println(err)
+		return outages
 	}
 
 	// Fold responseData into WaterOutage structs
-	var outages []WaterOutage
 	json.Unmarshal([]byte(string(outagesJSON)), &outages)
 
 	return outages
