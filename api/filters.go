@@ -54,10 +54,11 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 					} else if key == "search" {
 						keyParams = append(keyParams,
 							fmt.Sprintf(
-								`(lower(suburb) LIKE lower('%%%s%%') OR
-								lower(street) LIKE lower('%%%s%%') OR
-								lower(cast(outage_id as text)) LIKE lower('%%%s%%'))`,
-								element[0], element[0], element[0],
+								`(lower(cast(outage_id as text)) LIKE lower('%%%s%%'))
+								OR lower(suburb) LIKE lower('%%%s%%')
+								OR lower(street) LIKE lower('%%%s%%')`, element[0],
+								CleanAddressName(element[0], "suburb"),
+								CleanAddressName(element[0], "street"),
 							),
 						)
 					} else {
