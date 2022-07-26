@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -52,18 +53,29 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 					} else if key == "outage_type" {
 						keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))
 					} else if key == "search" {
-						keyParams = append(keyParams,
-							fmt.Sprintf(
-								`(lower(cast(outage_id as text)) LIKE lower('%%%s%%'))
-								OR lower(suburb) LIKE lower('%%%s%%')
-								OR lower(street) LIKE lower('%%%s%%') 
-								OR lower(suburb) LIKE lower('%%%s%%')
-								OR lower(street) LIKE lower('%%%s%%')`,
-								element[0], element[0], element[0],
-								CleanAddressName(element[0], "suburb"),
-								CleanAddressName(element[0], "street"),
-							),
-						)
+						if _, err := strconv.Atoi(element[0]); err == nil {
+							// Is an integer - check if is outage id
+							keyParams = append(keyParams,
+								fmt.Sprintf(
+									`lower(cast(outage_id as text)) 
+									LIKE lower('%%%s%%')`,
+									element[0],
+								),
+							)
+						} else {
+							keyParams = append(keyParams,
+								fmt.Sprintf(
+									`lower(suburb) LIKE lower('%%%s%%')
+									OR lower(street) LIKE lower('%%%s%%') 
+									OR lower(suburb) LIKE lower('%%%s%%')
+									OR lower(street) LIKE lower('%%%s%%')`,
+									element[0], element[0],
+									CleanAddressName(element[0], "suburb"),
+									CleanAddressName(element[0], "street"),
+								),
+							)
+						}
+
 					} else {
 						// Allow chaining (query equivalent = OR)
 						var elems []string
