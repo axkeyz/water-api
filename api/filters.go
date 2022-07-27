@@ -15,7 +15,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 	// Get params
 	params := r.URL.Query()
 	filter := ""
-	order := ""
+	order := " LIMIT 50 OFFSET 0"
 
 	// if parameters exist
 	if len(params) > 0 {
