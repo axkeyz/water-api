@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -19,7 +18,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 
 	// if parameters exist
 	if len(params) > 0 {
-		var keyParams []string
+		query := new(Query)
 		isValidFilter := false
 
 		for key, element := range params {
@@ -31,51 +30,29 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				if param != nil {
 					if key == "after_start_date" {
 						key = "start_date"
-						keyParams = append(keyParams, fmt.Sprintf("start_date >= '%s'", element[0]))
+						query.Wheres = append(query.Wheres, fmt.Sprintf("start_date >= '%s'", element[0]))
 					} else if key == "before_start_date" {
 						key = "start_date"
-						keyParams = append(keyParams, fmt.Sprintf("start_date >= '%s'", element[0]))
+						query.Wheres = append(query.Wheres, fmt.Sprintf("start_date >= '%s'", element[0]))
 					} else if key == "before_end_date" {
 						key = "end_date"
-						keyParams = append(keyParams, fmt.Sprintf("end_date <= '%s'", element[0]))
+						query.Wheres = append(query.Wheres, fmt.Sprintf("end_date <= '%s'", element[0]))
 					} else if key == "after_end_date" {
 						key = "end_date"
-						keyParams = append(keyParams, fmt.Sprintf("end_date >= '%s'", element[0]))
+						query.Wheres = append(query.Wheres, fmt.Sprintf("end_date >= '%s'", element[0]))
 					} else if key == "location" {
 						radius := element[2]
 						longitude := element[0]
 						latitude := element[1]
 
-						keyParams = append(keyParams, fmt.Sprintf(
+						query.Wheres = append(query.Wheres, fmt.Sprintf(
 							"ST_DWithin(location, ST_SetSRID(ST_Point(%s, %s), 4326), %s)",
 							longitude, latitude, radius,
 						))
 					} else if key == "outage_type" {
-						keyParams = append(keyParams, fmt.Sprintf("%s = '%s'", key, element[0]))
+						query.Wheres = append(query.Wheres, fmt.Sprintf("%s = '%s'", key, element[0]))
 					} else if key == "search" {
-						if _, err := strconv.Atoi(element[0]); err == nil {
-							// Is an integer - check if is outage id
-							keyParams = append(keyParams,
-								fmt.Sprintf(
-									`lower(cast(outage_id as text)) 
-									LIKE lower('%%%s%%')`,
-									element[0],
-								),
-							)
-						} else {
-							keyParams = append(keyParams,
-								fmt.Sprintf(
-									`lower(suburb) LIKE lower('%%%s%%')
-									OR lower(street) LIKE lower('%%%s%%') 
-									OR lower(suburb) LIKE lower('%%%s%%')
-									OR lower(street) LIKE lower('%%%s%%')`,
-									element[0], element[0],
-									CleanAddressName(element[0], "suburb"),
-									CleanAddressName(element[0], "street"),
-								),
-							)
-						}
-
+						query.SetSearchWhere(element)
 					} else {
 						// Allow chaining (query equivalent = OR)
 						var elems []string
@@ -83,7 +60,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 							elems = append(elems, fmt.Sprintf("lower(cast(%s as text)) LIKE lower('%%%s%%')", key, i))
 						}
 
-						keyParams = append(keyParams, strings.Join(elems, " OR "))
+						query.Wheres = append(query.Wheres, strings.Join(elems, " OR "))
 					}
 				}
 				isValidFilter = true
@@ -111,7 +88,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 
 		if isValidFilter {
 			// Join key parameters into final parameter string
-			filter = " WHERE " + strings.Join(keyParams, " AND ")
+			filter = query.GetWhereString()
 		}
 	}
 
@@ -123,7 +100,7 @@ func IsFilterableParam(param string) bool {
 	filterables := []string{
 		"suburb", "street", "outage_type", "search",
 		"before_start_date", "before_end_date", "after_end_date",
-		"location", "outage_id", "start_date", "end_date",
+		"after_start_date", "location", "outage_id",
 	}
 
 	return isStringInArray(param, filterables)
