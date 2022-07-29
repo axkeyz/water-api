@@ -1,3 +1,4 @@
+// filters_test.go contains tests that test filters.go
 package api
 
 import (

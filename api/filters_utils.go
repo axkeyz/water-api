@@ -1,3 +1,5 @@
+// filter_utils.go contain utility functions to check url query parameters
+// and SQL operators, conditions etc.
 package api
 
 import "strings"

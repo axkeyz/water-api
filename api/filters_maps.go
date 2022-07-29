@@ -1,3 +1,5 @@
+// filters_maps.go contains variables/constants that are used to
+// store data and key-value pairs.
 package api
 
 var FilterableParams = []string{
