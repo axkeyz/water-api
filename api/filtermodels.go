@@ -147,8 +147,8 @@ func (query *Query) SetSignedWhere(signedColumn, value string) {
 	}
 }
 
-// SetLocationRadiusWhere adds a search by longitude, latitude and radius to
-// the array of Wheres.
+// SetLocationRadiusWhere adds a SQL WHERE condition for longitude,
+// the latitude and radius parameters.
 func (query *Query) SetLocationRadiusWhere(
 	longitude, latitude, radius string,
 ) {
@@ -164,6 +164,8 @@ func (query *Query) SetLocationRadiusWhere(
 	}
 }
 
+// SetDateWheres adds a SQL WHERE condition for all date
+// parameters.
 func (query *Query) SetDateWheres(params url.Values) {
 	for _, param := range DateColumns {
 		if value := params.Get(param); len(value) > 0 {
@@ -173,6 +175,8 @@ func (query *Query) SetDateWheres(params url.Values) {
 	}
 }
 
+// SetAllAddressTypeWheres adds a SQL WHERE condition for
+// all address values of a single address type.
 func (query *Query) SetAllAddressTypeWheres(
 	params url.Values, addressType string) {
 	if values := params[addressType]; len(values) > 0 {
@@ -182,13 +186,33 @@ func (query *Query) SetAllAddressTypeWheres(
 	}
 }
 
+// SetOutageIDWhere adds a SQL WHERE condition for all address
+// values and types (street and suburb).
 func (query *Query) SetAllAddressWheres(params url.Values) {
 	query.SetAllAddressTypeWheres(params, "street")
 	query.SetAllAddressTypeWheres(params, "suburb")
 }
 
+// SetOutageIDWhere adds a SQL WHERE condition by outage_type.
+func (query *Query) SetOutageTypeWhere(value string) {
+	query.SetSignedWhere(
+		"outage_type = ", value,
+	)
+}
+
+// SetOutageIDWhere adds a SQL WHERE condition by outage_id.
+func (query *Query) SetOutageIDWhere(value string) {
+	query.SetSignedWhere(
+		"outage_id = ", value,
+	)
+}
+
+// SetWheres sets the Wheres file with the equivalent
+// string for valid API parameters.
 func (query *Query) SetWheres(params url.Values) {
 	query.SetSearchWhere(params["search"])
+	query.SetOutageTypeWhere(params.Get("outage_type"))
+	query.SetOutageIDWhere(params.Get("outage_id"))
 
 	query.SetDateWheres(params)
 	query.SetAllAddressWheres(params)
@@ -197,8 +221,27 @@ func (query *Query) SetWheres(params url.Values) {
 		params.Get("longitude"), params.Get("latitude"),
 		params.Get("radius"),
 	)
+}
 
-	query.SetSignedWhere(
-		"outage_type = ", params.Get("outage_type"),
-	)
+// MakeOrderbyPaginationString creates a string with an SQL
+// order by, limit and offset string based on sort, limit
+// and offset parameters if any.
+// Default value:
+//		" ORDER BY outage_id LIMIT 50 OFFSET 0"
+// where outage_id can be replaced by the sort, while 50
+// and 0 can be replaced by limit and offset parameters.
+func (query *Query) MakeOrderbyPaginationString(
+	params url.Values) string {
+	if values := params["sort"]; len(values) > 0 {
+		// Get parameters for sorting
+		orderby := query.MakeOrderbyString(values)
+
+		pagination := query.MakePaginationString(
+			params["limit"][0], params["offset"][0],
+		)
+
+		// Combine
+		return fmt.Sprintf(" %s %s", orderby, pagination)
+	}
+	return " ORDER BY outage_id LIMIT 50 OFFSET 0"
 }
