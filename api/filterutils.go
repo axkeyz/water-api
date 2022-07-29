@@ -7,8 +7,7 @@ func IsFilterableParam(param string) bool {
 	filterables := []string{
 		"suburb", "street", "outage_type", "search",
 		"before_start_date", "before_end_date", "after_end_date",
-		"after_start_date", "start_date", "end_date",
-		"location", "outage_id",
+		"after_start_date", "location", "outage_id",
 	}
 
 	return isStringInArray(param, filterables)
@@ -34,25 +33,25 @@ func IsDateParam(param string) (isDate bool, column string) {
 	if strings.Contains(param, "end_date") ||
 		strings.Contains(param, "start_date") {
 		isDate = true
-		column = getEquationSignedColumn(param)
+		column = GetEquationSignedColumn(param, 1)
 	}
 	return
 }
 
-// getEquationSignedColumn returns the column name and the equation
+// GetEquationSignedColumn returns the column name and the equation
 // sign from the parameter string.
 // For example:
 //		"after_end_date" returns "end_date >="
 //		"before_start_date" returns "start_date <="
-func getEquationSignedColumn(param string) string {
+func GetEquationSignedColumn(param string, n int) string {
 	p := strings.Split(param, "_")
-	return GetNWordsRemovedFromStart(param, "_", 1) + " " +
-		getSQLEquationSigns(p[0])
+	return GetNWordsRemovedFromStart(param, "_", n) + " " +
+		GetSQLEquationSigns(p[0])
 }
 
-// getSQLEquationSigns returns the corresponding equation sign
+// GetSQLEquationSigns returns the corresponding equation sign
 // to the given keys.
-func getSQLEquationSigns(key string) string {
+func GetSQLEquationSigns(key string) string {
 	signs := map[string]string{
 		"after":  ">=",
 		"before": "<=",
@@ -63,5 +62,15 @@ func getSQLEquationSigns(key string) string {
 		return sign
 	} else {
 		return "="
+	}
+}
+
+// GetSQLCondition gets the inclusive (AND)/exclusive (OR)
+// SQL condition in the WHERE clause.
+func GetSQLCondition(key string) string {
+	if key == "" || key == "true" {
+		return " AND "
+	} else {
+		return " OR "
 	}
 }
