@@ -80,7 +80,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 			StartDate:  startDate[:19] + "+13:00",
 			EndDate:    endDate[:19] + "+13:00",
 			OutageType: outageType,
-			Status:     IsCurrentOutage(outageID, current_outage_ids),
+			Status:     IsCurrentOutageID(outageID, current_outage_ids),
 		})
 
 		// log.Println(outages)
@@ -125,7 +125,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 	var grouped, selected []string
 
 	for _, element := range fields {
-		if IsFilterableOutage(element) {
+		if IsFilterableParam(element) {
 			if strings.Contains(element, "start_date") && element != "start_date" ||
 				strings.Contains(element, "end_date") && element != "end_date" {
 				element = strings.Join(strings.Split(element, "_")[1:2], "_")
@@ -219,7 +219,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 				})
 			}
 
-			outage.Status = IsCurrentOutage(outage.OutageID, current_outage_ids)
+			outage.Status = IsCurrentOutageID(outage.OutageID, current_outage_ids)
 
 			// Append outage to all outages
 			outages = append(outages, outage)

@@ -23,7 +23,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 		isValidFilter := false
 
 		for key, element := range params {
-			if IsFilterableOutage(key) || key == "search" {
+			if IsFilterableParam(key) || key == "search" {
 				log.Println("Received filter for " + key)
 
 				// Only append fiterable outages to key parameters list
@@ -118,36 +118,26 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 	return filter, order
 }
 
-// IsFilterableOutage returns true if a (url) parameter is filterable.
-func IsFilterableOutage(param string) bool {
-	if param == "suburb" || param == "street" || param == "outage_type" ||
-		param == "before_start_date" || param == "before_end_date" || param == "after_end_date" ||
-		param == "after_start_date" || param == "location" || param == "outage_id" ||
-		param == "start_date" || param == "end_date" {
-		return true
+// IsFilterableParam returns true if a (url) query parameter is filterable.
+func IsFilterableParam(param string) bool {
+	filterables := []string{
+		"suburb", "street", "outage_type",
+		"before_start_date", "before_end_date", "after_end_date",
+		"location", "outage_id", "start_date", "end_date",
 	}
 
-	// default false
-	return false
+	return isStringInArray(param, filterables)
 }
 
-// IsFilterableCountOutage extends IsFilterableOutage with extra filters. It
-// is attended to be a companion to IsFilterableOutage for the Count API.
-func IsFilterableCountOutage(param string) bool {
-	if param == "total_hours" || param == "total_outages" {
-		return true
-	}
-	// default false
-	return false
+// IsFilterableCountParam returns true if a query parameter is a count API
+// parameter. It is intended to be an extension of IsFilterableParam.
+func IsFilterableCountParam(param string) bool {
+	filterables := []string{"total_hours", "total_outages"}
+
+	return isStringInArray(param, filterables)
 }
 
 // Checks if an outage id is in a list of current outage ids.
-func IsCurrentOutage(outage_id int, current_outage_ids []int) bool {
-	// Check if is active outage
-	for _, current_outage_id := range current_outage_ids {
-		if outage_id == current_outage_id {
-			return true
-		}
-	}
-	return false
+func IsCurrentOutageID(outage_id int, current_outage_ids []int) bool {
+	return isIntInArray(outage_id, current_outage_ids)
 }
