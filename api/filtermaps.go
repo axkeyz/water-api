@@ -15,3 +15,8 @@ var SQLSigns = map[string]string{
 	"before": "<=",
 	"like":   "LIKE",
 }
+
+var DateColumns = []string{
+	"before_end_date", "after_end_date",
+	"before_start_date", "after_start_date",
+}

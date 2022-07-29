@@ -18,45 +18,21 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 	if len(params) > 0 {
 		query := new(Query)
 
-		for key, element := range params {
-			if IsFilterableParam(key) {
-				// Only append fiterable outages to key parameters list
-				param := params[key]
-				if param != nil {
-					if isDate, column := IsDateParam(key); isDate {
-						query.SetSignedWhere(column, element[0])
-					} else if key == "location" {
-						query.SetMapWhere(
-							params["longitude"][0], params["latitude"][0],
-							params["radius"][0],
-						)
-					} else if key == "outage_type" {
-						column = GetEquationSignedColumn(key, 0)
-						query.SetSignedWhere(column, element[0])
-					} else if key == "search" {
-						query.SetSearchWhere(element)
-					} else {
-						// Is a street / suburb
-						for _, i := range element {
-							query.SetLocationWhere(i)
-						}
-					}
-				}
-				query.IsValidWheres = true
-			} else if key == "sort" {
-				// Get parameters for sorting
-				orderby := query.MakeOrderbyString(element)
+		query.SetWheres(params)
 
-				pagination := query.MakePaginationString(
-					params["limit"][0], params["offset"][0],
-				)
+		if values := params["sort"]; len(values) > 0 {
+			// Get parameters for sorting
+			orderby := query.MakeOrderbyString(values)
 
-				// Combine
-				order = fmt.Sprintf(" %s %s", orderby, pagination)
-			}
+			pagination := query.MakePaginationString(
+				params["limit"][0], params["offset"][0],
+			)
+
+			// Combine
+			order = fmt.Sprintf(" %s %s", orderby, pagination)
 		}
 
-		if query.IsValidWheres {
+		if len(query.Wheres) > 0 {
 			filter = query.MakeWhereString(GetSQLCondition(params.Get("excl")))
 		}
 	}

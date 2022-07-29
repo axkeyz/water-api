@@ -3,18 +3,18 @@ package api
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
 type Query struct {
-	Selects       []string
-	Table         string
-	Wheres        []string
-	IsValidWheres bool
-	Orderbys      []string
-	Limit         string
-	Offset        string
-	GroupBy       []string
+	Selects  []string
+	Table    string
+	Wheres   []string
+	Orderbys []string
+	Limit    string
+	Offset   string
+	GroupBy  []string
 }
 
 // SetSearchWhere adds a search by location name (street/suburb)
@@ -41,6 +41,20 @@ func (query *Query) SetLocationWhere(location string) {
 			location, location,
 			CleanAddressName(location, "suburb"),
 			CleanAddressName(location, "street"),
+		),
+	)
+}
+
+// SetOneLocationWhere adds a search by location name of
+// one specific address type (street or suburb).
+func (query *Query) SetOneLocationWhere(
+	addressName, addressType string) {
+	query.Wheres = append(
+		query.Wheres, fmt.Sprintf(
+			`(lower(%s) LIKE lower('%%%s%%')
+			OR lower(%s) LIKE lower('%%%s%%'))`,
+			addressType, addressName, addressType,
+			CleanAddressName(addressName, addressType),
 		),
 	)
 }
@@ -125,23 +139,66 @@ func (query *Query) MakePaginationStringFromFields() (
 // Returns:
 //		"outage_type = 'Planned'"
 func (query *Query) SetSignedWhere(signedColumn, value string) {
-	query.Wheres = append(
-		query.Wheres,
-		fmt.Sprintf("%s '%s'", signedColumn, value),
-	)
+	if value != "" {
+		query.Wheres = append(
+			query.Wheres,
+			fmt.Sprintf("%s '%s'", signedColumn, value),
+		)
+	}
 }
 
-// SetMapWhere adds a search by longitude, latitude and radius to
+// SetLocationRadiusWhere adds a search by longitude, latitude and radius to
 // the array of Wheres.
-func (query *Query) SetMapWhere(
+func (query *Query) SetLocationRadiusWhere(
 	longitude, latitude, radius string,
 ) {
-	query.Wheres = append(
-		query.Wheres,
-		fmt.Sprintf(
-			`ST_DWithin(location, 
-			ST_SetSRID(ST_Point(%s, %s), 4326), %s)`,
-			longitude, latitude, radius,
-		),
+	if longitude != "" && latitude != "" && radius != "" {
+		query.Wheres = append(
+			query.Wheres,
+			fmt.Sprintf(
+				`ST_DWithin(location, 
+				ST_SetSRID(ST_Point(%s, %s), 4326), %s)`,
+				longitude, latitude, radius,
+			),
+		)
+	}
+}
+
+func (query *Query) SetDateWheres(params url.Values) {
+	for _, param := range DateColumns {
+		if value := params.Get(param); len(value) > 0 {
+			_, column := IsDateParam(param)
+			query.SetSignedWhere(column, value)
+		}
+	}
+}
+
+func (query *Query) SetAllAddressTypeWheres(
+	params url.Values, addressType string) {
+	if values := params[addressType]; len(values) > 0 {
+		for _, i := range values {
+			query.SetOneLocationWhere(i, addressType)
+		}
+	}
+}
+
+func (query *Query) SetAllAddressWheres(params url.Values) {
+	query.SetAllAddressTypeWheres(params, "street")
+	query.SetAllAddressTypeWheres(params, "suburb")
+}
+
+func (query *Query) SetWheres(params url.Values) {
+	query.SetSearchWhere(params["search"])
+
+	query.SetDateWheres(params)
+	query.SetAllAddressWheres(params)
+
+	query.SetLocationRadiusWhere(
+		params.Get("longitude"), params.Get("latitude"),
+		params.Get("radius"),
+	)
+
+	query.SetSignedWhere(
+		"outage_type = ", params.Get("outage_type"),
 	)
 }
