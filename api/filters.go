@@ -23,7 +23,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 		isValidFilter := false
 
 		for key, element := range params {
-			if IsFilterableParam(key) || key == "search" {
+			if IsFilterableParam(key) {
 				log.Println("Received filter for " + key)
 
 				// Only append fiterable outages to key parameters list
@@ -121,7 +121,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 // IsFilterableParam returns true if a (url) query parameter is filterable.
 func IsFilterableParam(param string) bool {
 	filterables := []string{
-		"suburb", "street", "outage_type",
+		"suburb", "street", "outage_type", "search",
 		"before_start_date", "before_end_date", "after_end_date",
 		"location", "outage_id", "start_date", "end_date",
 	}
