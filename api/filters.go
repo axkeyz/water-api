@@ -27,7 +27,8 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 						query.SetSignedWhere(column, element[0])
 					} else if key == "location" {
 						query.SetMapWhere(
-							element[0], element[1], element[2],
+							params["longitude"][0], params["latitude"][0],
+							params["radius"][0],
 						)
 					} else if key == "outage_type" {
 						column = GetEquationSignedColumn(key, 0)
