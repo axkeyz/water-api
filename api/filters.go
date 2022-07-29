@@ -4,7 +4,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -21,8 +20,6 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 
 		for key, element := range params {
 			if IsFilterableParam(key) {
-				log.Println("Received filter for " + key)
-
 				// Only append fiterable outages to key parameters list
 				param := params[key]
 				if param != nil {
