@@ -4,21 +4,13 @@ import "strings"
 
 // IsFilterableParam returns true if a (url) query parameter is filterable.
 func IsFilterableParam(param string) bool {
-	filterables := []string{
-		"suburb", "street", "outage_type", "search",
-		"before_start_date", "before_end_date", "after_end_date",
-		"after_start_date", "location", "outage_id",
-	}
-
-	return isStringInArray(param, filterables)
+	return isStringInArray(param, FilterableParams)
 }
 
 // IsFilterableCountParam returns true if a query parameter is a count API
 // parameter. It is intended to be an extension of IsFilterableParam.
 func IsFilterableCountParam(param string) bool {
-	filterables := []string{"total_hours", "total_outages"}
-
-	return isStringInArray(param, filterables)
+	return isStringInArray(param, FilterableCountParams)
 }
 
 // IsCurrentOutageID checks if an outage id is in a list of current
@@ -52,13 +44,7 @@ func GetEquationSignedColumn(param string, n int) string {
 // GetSQLEquationSigns returns the corresponding equation sign
 // to the given keys.
 func GetSQLEquationSigns(key string) string {
-	signs := map[string]string{
-		"after":  ">=",
-		"before": "<=",
-		"like":   "LIKE",
-	}
-
-	if sign, ok := signs[key]; ok {
+	if sign, ok := SQLSigns[key]; ok {
 		return sign
 	} else {
 		return "="
