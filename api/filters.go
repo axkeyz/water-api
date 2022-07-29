@@ -19,7 +19,6 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 	// if parameters exist
 	if len(params) > 0 {
 		query := new(Query)
-		isValidFilter := false
 
 		for key, element := range params {
 			if IsFilterableParam(key) {
@@ -63,28 +62,21 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 						query.Wheres = append(query.Wheres, strings.Join(elems, " OR "))
 					}
 				}
-				isValidFilter = true
+				query.IsValidWheres = true
 			} else if key == "sort" {
 				// Get parameters for sorting
-				query.Sorts = append(query.Sorts, element...)
+				orderby := query.MakeOrderbyString(element)
 
-				sorted := strings.Join(query.Sorts, ", ")
-
-				// Get sorting order (ascending / descending)
-				pagination := ""
-				limit := params["limit"]
-				offset := params["offset"]
-				if limit != nil && offset != nil {
-					// Pagination string
-					pagination = fmt.Sprintf("LIMIT %s OFFSET %s", limit[0], offset[0])
-				}
+				pagination := query.MakePaginationString(
+					params["limit"][0], params["offset"][0],
+				)
 
 				// Combine
-				order = fmt.Sprintf(" ORDER BY %s %s", sorted, pagination)
+				order = fmt.Sprintf(" %s %s", orderby, pagination)
 			}
 		}
 
-		if isValidFilter {
+		if query.IsValidWheres {
 			// Join key parameters into final parameter string
 			filter = query.MakeWhereString()
 		}
@@ -98,7 +90,8 @@ func IsFilterableParam(param string) bool {
 	filterables := []string{
 		"suburb", "street", "outage_type", "search",
 		"before_start_date", "before_end_date", "after_end_date",
-		"after_start_date", "location", "outage_id",
+		"after_start_date", "start_date", "end_date",
+		"location", "outage_id",
 	}
 
 	return isStringInArray(param, filterables)
