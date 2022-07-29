@@ -33,7 +33,7 @@ func IsDateParam(param string) (isDate bool, column string) {
 
 // GetEquationSignedColumn returns the column name and the equation
 // sign from the parameter string.
-// For example:
+// For example: GetEquationSignedColumn(param, 1)
 //		"after_end_date" returns "end_date >="
 //		"before_start_date" returns "start_date <="
 func GetEquationSignedColumn(param string, n int) string {
