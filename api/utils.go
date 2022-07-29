@@ -1,6 +1,9 @@
 package api
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 // isStringInArray returns true if a string is in a
 // string array.
@@ -30,4 +33,11 @@ func isInt(integer string) bool {
 		return true
 	}
 	return false
+}
+
+// GetNWordsRemovedFromStart returns a string after removing
+// n words from the start of a string.
+func GetNWordsRemovedFromStart(
+	s string, sep string, n int) string {
+	return strings.Join(strings.Split(s, sep)[n:], sep)
 }
