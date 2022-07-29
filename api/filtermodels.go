@@ -11,6 +11,7 @@ type Query struct {
 	Table   string
 	Wheres  []string
 	Order   string
+	Sorts   []string
 	Limit   int
 	Offset  int
 	GroupBy []string
@@ -55,7 +56,7 @@ func (query *Query) SetSearchIDWhere(id string) {
 	)
 }
 
-// GetWhereField combines the Wheres into a single SQL
+// MakeWhereString combines the Wheres into a single SQL
 // WHERE statement.
 //
 // For example:
@@ -66,6 +67,6 @@ func (query *Query) SetSearchIDWhere(id string) {
 // Output:
 //		"WHERE street = 'URANIUM ROAD' AND end_date >=
 //		'2006-02-01'"
-func (query *Query) GetWhereString() string {
+func (query *Query) MakeWhereString() string {
 	return " WHERE " + strings.Join(query.Wheres, " AND ")
 }

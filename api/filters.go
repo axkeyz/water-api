@@ -66,11 +66,9 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				isValidFilter = true
 			} else if key == "sort" {
 				// Get parameters for sorting
-				var sort []string
+				query.Sorts = append(query.Sorts, element...)
 
-				sort = append(sort, element...)
-
-				sorted := strings.Join(sort, ", ")
+				sorted := strings.Join(query.Sorts, ", ")
 
 				// Get sorting order (ascending / descending)
 				pagination := ""
@@ -88,7 +86,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 
 		if isValidFilter {
 			// Join key parameters into final parameter string
-			filter = query.GetWhereString()
+			filter = query.MakeWhereString()
 		}
 	}
 
