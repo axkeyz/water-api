@@ -22,8 +22,7 @@ func IsCurrentOutageID(outage_id int, current_outage_ids []int) bool {
 // IsDateParam returns true if a parameter corresponds to a date
 // column, and if so, it returns the actual column name.
 func IsDateParam(param string) (isDate bool, column string) {
-	if strings.Contains(param, "end_date") ||
-		strings.Contains(param, "start_date") {
+	if isStringInArray(param, DateColumns) {
 		isDate = true
 		column = GetEquationSignedColumn(param, 1)
 	}
