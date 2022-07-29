@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 )
 
 // MakeFilterQuery generates an SQL WHERE string based on given parameters.
@@ -28,31 +27,21 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				param := params[key]
 				if param != nil {
 					if isDate, column := IsDateParam(key); isDate {
-						query.Wheres = append(
-							query.Wheres,
-							fmt.Sprintf("%s '%s'", column, element[0]),
-						)
+						query.SetSignedWhere(column, element[0])
 					} else if key == "location" {
-						radius := element[2]
-						longitude := element[0]
-						latitude := element[1]
-
-						query.Wheres = append(query.Wheres, fmt.Sprintf(
-							"ST_DWithin(location, ST_SetSRID(ST_Point(%s, %s), 4326), %s)",
-							longitude, latitude, radius,
-						))
+						query.SetMapWhere(
+							element[0], element[1], element[2],
+						)
 					} else if key == "outage_type" {
-						query.Wheres = append(query.Wheres, fmt.Sprintf("%s = '%s'", key, element[0]))
+						column = GetEquationSignedColumn(key, 0)
+						query.SetSignedWhere(column, element[0])
 					} else if key == "search" {
 						query.SetSearchWhere(element)
 					} else {
-						// Allow chaining (query equivalent = OR)
-						var elems []string
+						// Is a street / suburb
 						for _, i := range element {
-							elems = append(elems, fmt.Sprintf("lower(cast(%s as text)) LIKE lower('%%%s%%')", key, i))
+							query.SetLocationWhere(i)
 						}
-
-						query.Wheres = append(query.Wheres, strings.Join(elems, " OR "))
 					}
 				}
 				query.IsValidWheres = true
@@ -70,8 +59,7 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 		}
 
 		if query.IsValidWheres {
-			// Join key parameters into final parameter string
-			filter = query.MakeWhereString()
+			filter = query.MakeWhereString(GetSQLCondition(params.Get("excl")))
 		}
 	}
 

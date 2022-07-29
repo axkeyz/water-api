@@ -24,14 +24,14 @@ func (query *Query) SetSearchWhere(value []string) {
 		if isInt(i) {
 			query.SetSearchIDWhere(i)
 		} else {
-			query.SetSearchLocationWhere(i)
+			query.SetLocationWhere(i)
 		}
 	}
 }
 
 // SetSearchLocationWhere adds a search by location name
 // (street/suburb) to the array of wheres.
-func (query *Query) SetSearchLocationWhere(location string) {
+func (query *Query) SetLocationWhere(location string) {
 	query.Wheres = append(
 		query.Wheres, fmt.Sprintf(
 			`(lower(suburb) LIKE lower('%%%s%%')
@@ -57,9 +57,10 @@ func (query *Query) SetSearchIDWhere(id string) {
 }
 
 // MakeWhereString combines the Wheres into a single SQL
-// WHERE statement, joined by "AND".
-func (query *Query) MakeWhereString() string {
-	return " WHERE " + strings.Join(query.Wheres, " AND ")
+// WHERE statement, joined by an " AND " or " OR " SQL
+// condition.
+func (query *Query) MakeWhereString(condition string) string {
+	return " WHERE " + strings.Join(query.Wheres, condition)
 }
 
 // MakeOrderByString returns an orderby string after adding
@@ -114,4 +115,33 @@ func (query *Query) MakePaginationStringFromFields() (
 	}
 
 	return
+}
+
+// SetSignedWhere sets a column with its operational sign and
+// the value to be assigned.
+// For example:
+//		signedColumn = "outage_type ="
+//		value = "Planned"
+// Returns:
+//		"outage_type = 'Planned'"
+func (query *Query) SetSignedWhere(signedColumn, value string) {
+	query.Wheres = append(
+		query.Wheres,
+		fmt.Sprintf("%s '%s'", signedColumn, value),
+	)
+}
+
+// SetMapWhere adds a search by longitude, latitude and radius to
+// the array of Wheres.
+func (query *Query) SetMapWhere(
+	longitude, latitude, radius string,
+) {
+	query.Wheres = append(
+		query.Wheres,
+		fmt.Sprintf(
+			`ST_DWithin(location, 
+			ST_SetSRID(ST_Point(%s, %s), 4326), %s)`,
+			longitude, latitude, radius,
+		),
+	)
 }
