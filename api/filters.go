@@ -27,18 +27,11 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 				// Only append fiterable outages to key parameters list
 				param := params[key]
 				if param != nil {
-					if key == "after_start_date" {
-						key = "start_date"
-						query.Wheres = append(query.Wheres, fmt.Sprintf("start_date >= '%s'", element[0]))
-					} else if key == "before_start_date" {
-						key = "start_date"
-						query.Wheres = append(query.Wheres, fmt.Sprintf("start_date >= '%s'", element[0]))
-					} else if key == "before_end_date" {
-						key = "end_date"
-						query.Wheres = append(query.Wheres, fmt.Sprintf("end_date <= '%s'", element[0]))
-					} else if key == "after_end_date" {
-						key = "end_date"
-						query.Wheres = append(query.Wheres, fmt.Sprintf("end_date >= '%s'", element[0]))
+					if isDate, column := IsDateParam(key); isDate {
+						query.Wheres = append(
+							query.Wheres,
+							fmt.Sprintf("%s '%s'", column, element[0]),
+						)
 					} else if key == "location" {
 						radius := element[2]
 						longitude := element[0]
@@ -83,29 +76,4 @@ func MakeFilterQuery(r *http.Request) (string, string) {
 	}
 
 	return filter, order
-}
-
-// IsFilterableParam returns true if a (url) query parameter is filterable.
-func IsFilterableParam(param string) bool {
-	filterables := []string{
-		"suburb", "street", "outage_type", "search",
-		"before_start_date", "before_end_date", "after_end_date",
-		"after_start_date", "start_date", "end_date",
-		"location", "outage_id",
-	}
-
-	return isStringInArray(param, filterables)
-}
-
-// IsFilterableCountParam returns true if a query parameter is a count API
-// parameter. It is intended to be an extension of IsFilterableParam.
-func IsFilterableCountParam(param string) bool {
-	filterables := []string{"total_hours", "total_outages"}
-
-	return isStringInArray(param, filterables)
-}
-
-// Checks if an outage id is in a list of current outage ids.
-func IsCurrentOutageID(outage_id int, current_outage_ids []int) bool {
-	return isIntInArray(outage_id, current_outage_ids)
 }
