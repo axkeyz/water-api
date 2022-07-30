@@ -1,4 +1,5 @@
-// filtermodels.go contains the SQL query components.
+// filtermodels.go contains the SQL WHERE query components.
+// SQL WHERE statements filter results during SQL queries.
 package api
 
 import (
@@ -13,46 +14,49 @@ type Query struct {
 	GroupBy  []string
 }
 
-// MakeWhereString combines the Wheres into a single SQL
-// WHERE statement, joined by an " AND " or " OR " SQL
-// condition.
-func (query *Query) MakeWhereString(condition string) string {
-	return " WHERE " + strings.Join(query.Wheres, condition)
-}
-
-// SetSearchWhere adds a search by location name (street/suburb)
-// or outage id depending on the value of user input.
+// SetSearchWhere adds a SQL WHERE that filters database
+// records depending on user input. If the user input is a
+// string or by outage id if the user input is an integer.
+// The SQL WHERE statement is added to *Query.Wheres.
 func (query *Query) SetSearchWhere(value []string) {
 	for _, i := range value {
 		if isInt(i) {
 			query.SetOutageIDWhere(i)
 		} else {
-			query.SetLocationWhere(i)
+			query.SetAddressWhere(i)
 		}
 	}
 }
 
-// SetSearchLocationWhere adds a search by location name
-// (street/suburb) to the array of wheres.
-func (query *Query) SetLocationWhere(location string) {
+// SetAddressWhere adds a SQL WHERE statement that filters
+// database records of the given address in both the street
+// and suburb columns. The SQL WHERE statement is added to
+// *Query.Wheres.
+func (query *Query) SetAddressWhere(address string) {
+	// Search address in the street and suburb columns and
+	// attempt to unabbreviate shorthands if applicable
 	query.Wheres = append(
 		query.Wheres, fmt.Sprintf(
 			`(lower(suburb) LIKE lower('%%%s%%')
 			OR lower(street) LIKE lower('%%%s%%') 
 			OR lower(suburb) LIKE lower('%%%s%%')
 			OR lower(street) LIKE lower('%%%s%%'))`,
-			location, location,
-			CleanAddressName(location, "suburb"),
-			CleanAddressName(location, "street"),
+			address, address,
+			CleanAddressName(address, "suburb"),
+			CleanAddressName(address, "street"),
 		),
 	)
 }
 
-// SetOneLocationWhere adds a search by location name of
-// one specific address type (street or suburb).
-func (query *Query) SetOneLocationWhere(
+// SetAddressWhere adds a SQL WHERE statement that filters
+// database records of the given address in either the street
+// or the suburb column. The SQL WHERE statement is added to
+// *Query.Wheres.
+func (query *Query) SetAddressOfTypeWhere(
 	addressName, addressType string) {
 	query.Wheres = append(
+		// Search address in the given addressType column and
+		// attempt to unabbreviate shorthands if applicable
 		query.Wheres, fmt.Sprintf(
 			`(lower(%s) LIKE lower('%%%s%%')
 			OR lower(%s) LIKE lower('%%%s%%'))`,
@@ -62,8 +66,10 @@ func (query *Query) SetOneLocationWhere(
 	)
 }
 
-// SetLocationRadiusWhere adds a SQL WHERE condition for longitude,
-// the latitude and radius parameters.
+// SetLocationRadiusWhere adds a SQL WHERE statement that
+// filters database records of a radius circle (in m) around
+// a longitude and latitude. The SQL WHERE statement is added
+// to *Query.Wheres.
 func (query *Query) SetLocationRadiusWhere(
 	longitude, latitude, radius string,
 ) {
@@ -79,22 +85,28 @@ func (query *Query) SetLocationRadiusWhere(
 	}
 }
 
-// SetOutageIDWhere adds a SQL WHERE condition by outage_type.
-func (query *Query) SetOutageTypeWhere(value string) {
+// SetOutageTypeWhere adds a SQL WHERE that filters database
+// records by the outage_type column. The SQL WHERE statement
+// is added to *Query.Wheres.
+func (query *Query) SetOutageTypeWhere(outageType string) {
 	query.SetSignedWhere(
-		"outage_type = ", value,
+		"outage_type = ", outageType,
 	)
 }
 
-// SetOutageIDWhere adds a SQL WHERE condition by outage_id.
+// SetOutageIDWhere adds a SQL WHERE that filters database
+// records by the outage_id column. The SQL WHERE statement
+// is added to *Query.Wheres.
 func (query *Query) SetOutageIDWhere(value string) {
 	query.SetSignedWhere(
 		"outage_id = ", value,
 	)
 }
 
-// SetSignedWhere sets a column with its operational sign and
-// the value to be assigned.
+// SetAddressWhere sets a SQL WHERE statement that filters
+// database records of the column with an SQL operation sign
+// (such as >=, =, LIKE) with the value to be assigned. The
+// SQL WHERE statement is added to *Query.Wheres.
 // For example:
 //		signedColumn = "outage_type ="
 //		value = "Planned"
@@ -109,9 +121,9 @@ func (query *Query) SetSignedWhere(signedColumn, value string) {
 	}
 }
 
-// MakeOrderByString returns an orderby string after adding
-// the orderby strings to query.Orderbys.
-// The orderby strings are in the format "column_name asc/desc"
+// MakeOrderbyString returns an orderby string after adding
+// the orderby strings to *Query.Orderbys. The orderby strings
+// are in the format "column_name asc/desc"
 func (query *Query) MakeOrderbyString(
 	orderbys []string,
 ) string {
@@ -125,14 +137,14 @@ func (query *Query) SetOrderbysField(orderbys []string) {
 	query.Orderbys = append(query.Orderbys, orderbys...)
 }
 
-// MakeOrderString makes a single SQL ORDER BY statement by
-// combining the Orderbys array.
+// MakeOrderbyStringFromFields makes a single SQL ORDER BY
+// statement by combining the *Query.Orderbys.
 func (query *Query) MakeOrderbyStringFromFields() string {
 	return " ORDER BY " + strings.Join(query.Orderbys, ", ")
 }
 
-// MakePaginationString makes an SQL limit-offset pagination string
-// by using the query limit and offset.
+// MakePaginationString makes an SQL limit-offset pagination
+// string by using the *Query.Limit and *Query.Offset.
 func (query *Query) MakePaginationString(
 	limit, offset string) (pagination string) {
 	if limit != "" && offset != "" {

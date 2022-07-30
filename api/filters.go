@@ -6,30 +6,30 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
-// MakeFilterQuery generates an SQL WHERE string based on given parameters.
-func MakeFilterQuery(r *http.Request) (string, string) {
-	// Get params
+// MakeFilterQuery generates an SQL WHERE string and a string containing
+// ORDER BY, LIMIT and OFFSET statements based on given parameters.
+func MakeFilterQuery(r *http.Request) (where string, sort string) {
+	// Get url params
 	params := r.URL.Query()
-	var filter string
 
+	// Set up query object
 	query := new(Query)
 
-	ordering := query.MakeOrderbyPaginationString(params)
+	// Make strings from params and query objects
+	sort = query.MakeOrderbyPaginationString(params)
 
 	// if parameters exist
 	if len(params) > 0 {
-		query.SetWheres(params)
-		if len(query.Wheres) > 0 {
-			filter = query.MakeWhereString(GetSQLCondition(params.Get("excl")))
-		}
+		where = query.MakeWhereString(params)
 	}
 
-	return filter, ordering
+	return
 }
 
-// MakeOrderbyPaginationString creates a string with an SQL
+// MakeOrderbyPaginationString makes a string with an SQL
 // order by, limit and offset string based on sort, limit
 // and offset parameters if any.
 // Default value:
@@ -52,7 +52,22 @@ func (query *Query) MakeOrderbyPaginationString(
 	return " ORDER BY outage_id LIMIT 50 OFFSET 0"
 }
 
-// SetWheres sets the Wheres file with the equivalent
+// MakeWhereString combines the Wheres into a single SQL
+// WHERE statement, joined by an " AND " or " OR " SQL
+// condition.
+func (query *Query) MakeWhereString(
+	params url.Values) (filter string) {
+	// Make SQL Wheres from url params
+	query.SetWheres(params)
+
+	// Get SQL condition from excl param
+	condition := GetSQLCondition(params.Get("excl"))
+
+	// Join strings
+	return " WHERE " + strings.Join(query.Wheres, condition)
+}
+
+// SetWheres adds all SQL Wheres of the equivalent
 // string for valid API parameters.
 func (query *Query) SetWheres(params url.Values) {
 	query.SetSearchWhere(params["search"])
@@ -85,7 +100,7 @@ func (query *Query) SetAllAddressTypeWheres(
 	params url.Values, addressType string) {
 	if values := params[addressType]; len(values) > 0 {
 		for _, i := range values {
-			query.SetOneLocationWhere(i, addressType)
+			query.SetAddressOfTypeWhere(i, addressType)
 		}
 	}
 }
