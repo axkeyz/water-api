@@ -63,4 +63,4 @@ Data is collected every 1 hour.
 
 There's one at: https://water.aileenhuang.dev/
 
-Started collecting data on 08/03/2022 as my previous data got deleted in a server mixup :/
+First started collecting data on 09/12/2021. Data got a bit messed up/incomplete from 02/06/2022 to 08/03/2022 due to my incompetencies with Docker & Linux.
