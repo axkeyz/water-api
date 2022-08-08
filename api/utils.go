@@ -41,3 +41,18 @@ func GetNWordsRemovedFromStart(
 	s string, sep string, n int) string {
 	return strings.Join(strings.Split(s, sep)[n:], sep)
 }
+
+// StripNonLetters is a utility function that strips all non-letters
+// from the given string (str).
+func StripNonLetters(str string) string {
+	s := []byte(str)
+	n := 0
+	for _, b := range s {
+		if ('a' <= b && b <= 'z') ||
+			('A' <= b && b <= 'Z') {
+			s[n] = b
+			n++
+		}
+	}
+	return string(s[:n])
+}
