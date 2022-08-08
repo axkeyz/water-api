@@ -1,5 +1,5 @@
-// source.go contains the functions that extract data from the Watercare API and
-// save the data in this app's database.
+// source.go contains the functions that extract data from the
+// Watercare API and save the data in this app's database.
 package api
 
 import (
@@ -14,7 +14,8 @@ import (
 	"github.com/axkeyz/water-down-again/database"
 )
 
-// GetAPIData returns the latest data as array of WaterOutage structs from the Watercare Outage API.
+// GetAPIData returns the latest data as array of WaterOutage
+// structs from the Watercare Outage API.
 func GetAPIData() []WaterOutage {
 	var outages []WaterOutage
 
@@ -39,62 +40,89 @@ func GetAPIData() []WaterOutage {
 	return outages
 }
 
-// UnpackAPIData converts an array of WaterOutage structs into a string for SQL insertion.
-// The data is returned as comma separated list where each element looks like:
-// (OutageID, 'Street', 'Suburb', '(Longitude, Latitude)', 'StartDate', 'EndDate', 'OutageType')
+// UnpackAPIData converts an array of WaterOutage structs into
+// a SQL string for bulk insert.
 func UnpackAPIData(outages []WaterOutage) string {
 	// Initialise all variables
-	numOutage := len(outages)
-	arrOutages := make([]string, numOutage)
+	arrOutages := make([]string, len(outages))
 
-	// Loop through WaterOutages, separate and assign to individual array
+	// Loop through WaterOutages, separate and assign to
+	// individual array
 	for i := range outages {
-		street, suburb := AddressToStreetSuburb(outages[i].Location)
-
-		arrOutages[i] = fmt.Sprintf("(%d,'%s','%s','POINT(%f %f)','%s', '%s', '%s')",
-			outages[i].OutageID, strings.TrimSpace(street), strings.TrimSpace(suburb), outages[i].Longitude,
-			outages[i].Latitude, outages[i].StartDate, outages[i].EndDate, outages[i].OutageType)
+		arrOutages[i] = UnpackSingleAPIData(outages[i])
 	}
 
 	return strings.Join(arrOutages[:], ", ")
 }
 
-// WriteOutage upserts outages in the database.
-// If the outage exists in the database (based on outage_id), WriteOutage attempts to update the endDate if
-// applicable. If the outage does not exist in the database, WriteOutage creates a new record.
+// UnpackSingleAPIData converts a single WaterOutage struct to
+// a specific formatted string for bulk insert.
+// Format:
+// `(OutageID, "Street", "Suburb", "(Longitude, Latitude)",
+// "StartDate", "EndDate", "OutageType")`
+func UnpackSingleAPIData(outage WaterOutage) string {
+	street, suburb := AddressToStreetSuburb(
+		outage.Location)
+
+	return fmt.Sprintf(
+		"(%d,'%s','%s','POINT(%f %f)','%s', '%s', '%s')",
+		outage.OutageID, strings.TrimSpace(street),
+		strings.TrimSpace(suburb), outage.Longitude,
+		outage.Latitude, outage.StartDate,
+		outage.EndDate, outage.OutageType,
+	)
+}
+
+// MakeWriteOutageQuery returns an SQL string to bulk insert
+// multiple outages.
+func MakeWriteOutageQuery(outage []WaterOutage) string {
+	// Prepare SQL Statement
+	sqlStatement := `insert into outage (outage_id, street, 
+		suburb, location, start_date, end_date, outage_type)  
+		values %s on conflict (outage_id) do update SET 
+		end_date = excluded.end_date;`
+	outages := UnpackAPIData(outage)
+
+	return fmt.Sprintf(sqlStatement, outages)
+}
+
+// WriteOutage upserts outages in the database. If the outage
+// exists in the database (based on outage_id), WriteOutage
+// attempts to update the endDate if applicable. If the outage
+// does not exist in the database, WriteOutage creates a
+// new record.
 func WriteOutage(outage []WaterOutage) {
 	// Open database
 	db := database.SetupDB()
 	defer db.Close()
 
 	// Prepare SQL Statement
-	sqlStatement := `insert into outage (outage_id, street, suburb, location, start_date, end_date, outage_type)  
-	values %s on conflict (outage_id) do update set end_date = excluded.end_date;`
-	outages := UnpackAPIData(outage)
-	combined := fmt.Sprintf(sqlStatement, outages)
+	query := MakeWriteOutageQuery(outage)
 
 	// run sql statement
-	_, err := db.Exec(combined)
+	_, err := db.Exec(query)
 	if err != nil {
 		log.Println(err)
 	}
 }
 
-// UpdateOutages gets the latest data from the Watercare API and upserts the data into the database.
+// UpdateOutages gets the latest data from the Watercare API
+// and upserts the data into the database.
 func UpdateOutages() {
 	outages := GetAPIData()
 	WriteOutage(outages)
 	log.Println("Outage list has been updated.")
 }
 
-// GetCurrentOutageIDs returns an int slice of all currently active outage ids.
-func GetCurrentOutageIDs() []int {
+// GetCurrentOutageIDs returns an int slice of all currently
+// active outage ids.
+func GetCurrentOutageIDs() (current_outage_ids []int) {
 	current_outages := GetAPIData()
-	var current_outage_ids []int
 
 	for _, current_outage := range current_outages {
-		current_outage_ids = append(current_outage_ids, current_outage.OutageID)
+		current_outage_ids = append(
+			current_outage_ids, current_outage.OutageID)
 	}
 
-	return current_outage_ids
+	return
 }
