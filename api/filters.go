@@ -22,7 +22,7 @@ func MakeFilterQuery(r *http.Request) (where string, sort string) {
 	sort = query.MakeOrderbyPaginationString(params)
 
 	// if parameters exist
-	if len(params) > 0 {
+	if len(query.Wheres) > 0 {
 		where = query.MakeWhereString(params)
 	}
 
