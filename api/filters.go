@@ -23,9 +23,7 @@ func MakeFilterQuery(r *http.Request, isCount bool) (where string, sort string) 
 	sort = query.MakeOrderbyPaginationString(params)
 
 	// if parameters exist
-	if len(query.Wheres) > 0 {
-		where = query.MakeWhereString(params)
-	}
+	where = query.MakeWhereString(params)
 
 	return
 }
@@ -69,7 +67,10 @@ func (query *Query) MakeWhereString(
 	condition := GetSQLCondition(params.Get("excl"))
 
 	// Join strings
-	return " WHERE " + strings.Join(query.Wheres, condition)
+	if len(query.Wheres) > 0 {
+		return " WHERE " + strings.Join(query.Wheres, condition)
+	}
+	return
 }
 
 // SetWheres adds all SQL Wheres of the equivalent
