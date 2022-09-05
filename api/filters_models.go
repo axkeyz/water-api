@@ -12,6 +12,7 @@ type Query struct {
 	Wheres   []string
 	Orderbys []string
 	GroupBy  []string
+	IsCount  bool
 }
 
 // SetSearchWhere adds a SQL WHERE that filters database

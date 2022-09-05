@@ -11,12 +11,13 @@ import (
 
 // MakeFilterQuery generates an SQL WHERE string and a string containing
 // ORDER BY, LIMIT and OFFSET statements based on given parameters.
-func MakeFilterQuery(r *http.Request) (where string, sort string) {
+func MakeFilterQuery(r *http.Request, isCount bool) (where string, sort string) {
 	// Get url params
 	params := r.URL.Query()
 
 	// Set up query object
 	query := new(Query)
+	query.IsCount = isCount
 
 	// Make strings from params and query objects
 	sort = query.MakeOrderbyPaginationString(params)
@@ -38,6 +39,10 @@ func MakeFilterQuery(r *http.Request) (where string, sort string) {
 // and 0 can be replaced by limit and offset parameters.
 func (query *Query) MakeOrderbyPaginationString(
 	params url.Values) string {
+	if query.IsCount {
+		return ""
+	}
+
 	if values := params["sort"]; len(values) > 0 {
 		// Get parameters for sorting
 		orderby := query.MakeOrderbyString(values)

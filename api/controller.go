@@ -25,7 +25,7 @@ func GetOutages(w http.ResponseWriter, r *http.Request) {
 	// Get parameters and assemble filter query
 	main := `SELECT outage_id, street, suburb, st_astext(location), start_date, end_date, 
 	outage_type FROM outage`
-	filter, order := MakeFilterQuery(r)
+	filter, order := MakeFilterQuery(r, false)
 
 	// Setup the database & model
 	db := database.SetupDB()
@@ -121,7 +121,7 @@ func CountOutages(w http.ResponseWriter, r *http.Request) {
 	// Create "filter" phrase, or the "WHERE" part in an SQL query
 	fields := params["get"]
 
-	filter, order := MakeFilterQuery(r)
+	filter, order := MakeFilterQuery(r, true)
 	var grouped, selected []string
 
 	for _, element := range fields {
