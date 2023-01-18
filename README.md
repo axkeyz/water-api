@@ -6,6 +6,8 @@ Unfortunately there is no public API for previous water outages, so the data col
 
 But one day, I'll prove it! Maybe.
 
+__This project is no longer being maintained__
+
 ## APIs
 
 1. Main API, available at the root of the server (/).
@@ -61,14 +63,6 @@ Data is collected every 1 hour.
 
 ## Live version
 
-There's one at: https://water.aileenhuang.dev/
+There was one at: https://water.aileenhuang.dev/
 
 First started collecting data on 09/12/2021. Data got a bit messed up/incomplete from 02/06/2022 to 08/03/2022 due to my incompetencies with Docker & Linux.
-
-
-## Todos
-
-- Refactor controller.go
-- Standardise function names
-- Write more tests
-- Make more location select methods
